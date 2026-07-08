@@ -1,6 +1,6 @@
 package com.picpay.finsys.core.domain;
 
-import com.picpay.finsys.core.domain.enumeration.ContractStatusEnum;
+import com.picpay.finsys.core.domain.enumeration.ContractStatus;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -17,6 +17,6 @@ public class ContractDomain {
     private Double installmentAmount;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
-    private ContractStatusEnum status;
+    private ContractStatus status;
     private List<InstallmentDomain> installments;
 }

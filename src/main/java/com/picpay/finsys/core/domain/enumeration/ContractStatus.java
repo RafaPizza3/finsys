@@ -1,6 +1,6 @@
 package com.picpay.finsys.core.domain.enumeration;
 
-public enum ContractStatusEnum {
+public enum ContractStatus {
         ACTIVE,
         FINISHED,
         CANCELED;

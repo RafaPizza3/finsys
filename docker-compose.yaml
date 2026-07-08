@@ -1,0 +1,21 @@
+services:
+  mongo.picpay.cpxp:
+    container_name: mongo.picpay.cpxp
+    hostname: mongo.picpay.cpxp
+    image: mongo:8.0.13
+    command: mongod --maxConns 10000
+    volumes:
+      - automatic_debit_mongo:/data/db
+    ports:
+      - "37017:27017"
+    restart: unless-stopped
+    networks:
+      pc-environment-network:
+        aliases:
+          - mongo.picpay.cpxp
+networks:
+  pc-environment-network:
+    external: true
+volumes:
+  automatic_debit_mongo:
+    driver: "local"
