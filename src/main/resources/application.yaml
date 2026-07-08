@@ -1,3 +1,6 @@
 spring:
   application:
     name: finsys
+  data:
+    mongodb:
+      uri: mongodb://localhost:37027/finsys

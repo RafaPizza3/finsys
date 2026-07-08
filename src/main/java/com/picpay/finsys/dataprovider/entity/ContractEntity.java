@@ -1,15 +1,19 @@
-package com.picpay.finsys.core.domain;
+package com.picpay.finsys.dataprovider.entity;
 
 import com.picpay.finsys.core.domain.enumeration.ContractStatus;
 import lombok.Builder;
 import lombok.Getter;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.MongoId;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
 @Builder
-public class ContractDomain {
+@Document(collection = "contract")
+public class ContractEntity {
+    @MongoId
     private String id;
     private String customerId;
     private Double totalAmount;
@@ -18,5 +22,5 @@ public class ContractDomain {
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private ContractStatus status;
-    private List<InstallmentDomain> installments;
+    private List<InstallmentEntity> installments;
 }
