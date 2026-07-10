@@ -3,4 +3,4 @@ spring:
     name: finsys
   data:
     mongodb:
-      uri: mongodb://localhost:37027/finsys
+      uri: mongodb://localhost:37017/finsys
