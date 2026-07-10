@@ -25,7 +25,37 @@ public class CustomerAdapter implements CustomerGateway {
     }
 
     @Override
-    public void insert(CustomerDomain customer) {
-        customerRepository.insert(customerMapper.toEntity(customer));
+    public List<CustomerDomain> findAll() {
+        return customerRepository.findAll()
+                .stream()
+                .map(customerMapper::toDomain)
+                .toList();
     }
+
+    @Override
+    public CustomerDomain findById(String id) {
+        return customerMapper.toDomain(
+                customerRepository.findById(id).get()
+        );
+    }
+
+    @Override
+    public CustomerDomain insert(CustomerDomain customer) {
+        return customerMapper.toDomain(customerRepository.insert(
+                customerMapper.toEntity(customer)
+        ));
+    }
+
+    @Override
+    public CustomerDomain update(CustomerDomain customer) {
+        return customerMapper.toDomain(customerRepository.save(
+                customerMapper.toEntity(customer)
+        ));
+    }
+
+    @Override
+    public void delete(String id) {
+        customerRepository.deleteById(id);
+    }
+
 }

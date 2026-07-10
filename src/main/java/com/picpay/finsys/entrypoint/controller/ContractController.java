@@ -1,10 +1,8 @@
 package com.picpay.finsys.entrypoint.controller;
 
 import com.picpay.finsys.core.domain.ContractDomain;
-import com.picpay.finsys.core.usecase.DeleteContractUseCase;
-import com.picpay.finsys.core.usecase.InsertContractUseCase;
-import com.picpay.finsys.core.usecase.ListAllContractUseCase;
-import com.picpay.finsys.core.usecase.UpdateContractUseCase;
+import com.picpay.finsys.core.domain.enumeration.ContractStatus;
+import com.picpay.finsys.core.usecase.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,14 +12,26 @@ import java.util.List;
 @RequestMapping("/v1/contract")
 @RequiredArgsConstructor
 public class ContractController {
-    private final ListAllContractUseCase listAllContractUseCase;
+    private final FindContractByStatusUseCase findContractByStatusUseCase;
+    private final FindAllContractUseCase findAllContractUseCase;
+    private final FindContractByIdUseCase findContractByIdUseCase;
     private final InsertContractUseCase insertContractUseCase;
     private final UpdateContractUseCase updateContractUseCase;
     private final DeleteContractUseCase deleteContractUseCase;
 
+    @GetMapping("/status/{status}")
+    public List<ContractDomain> findAllByStatus(@PathVariable ContractStatus status) {
+        return findContractByStatusUseCase.execute(status);
+    }
+
     @GetMapping
-    public List<ContractDomain> listAll() {
-        return listAllContractUseCase.execute();
+    public List<ContractDomain> findAll() {
+        return findAllContractUseCase.execute();
+    }
+
+    @GetMapping("/{id}")
+    public ContractDomain findById(String id) {
+        return findContractByIdUseCase.execute(id);
     }
 
     @PostMapping

@@ -4,6 +4,6 @@ import com.picpay.finsys.core.domain.ContractDomain;
 
 import java.util.List;
 
-public interface ListAllContractUseCase {
+public interface FindAllContractUseCase {
     List<ContractDomain> execute();
 }

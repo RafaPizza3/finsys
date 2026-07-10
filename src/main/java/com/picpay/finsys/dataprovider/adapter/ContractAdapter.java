@@ -17,7 +17,7 @@ public class ContractAdapter implements ContractGateway {
     private final ContractMapper contractMapper;
 
     @Override
-    public List<ContractDomain> findAllActive(ContractStatus status) {
+    public List<ContractDomain> findAllByStatus(ContractStatus status) {
         return contractRepository.findAllByStatus(status)
                 .stream()
                 .map(contractMapper::toDomain)
@@ -30,6 +30,13 @@ public class ContractAdapter implements ContractGateway {
                 .stream()
                 .map(contractMapper::toDomain)
                 .toList();
+    }
+
+    @Override
+    public ContractDomain findById(String id) {
+        return contractMapper.toDomain(
+                contractRepository.findById(id).get()
+        );
     }
 
     @Override
