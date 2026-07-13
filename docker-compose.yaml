@@ -15,7 +15,7 @@ services:
           - mongo.picpay.cpxp
 networks:
   pc-environment-network:
-    external: true
+    external: false
 volumes:
   automatic_debit_mongo:
     driver: "local"

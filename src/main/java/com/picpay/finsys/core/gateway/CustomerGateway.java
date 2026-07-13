@@ -7,5 +7,9 @@ import java.util.List;
 
 public interface CustomerGateway {
     List<CustomerDomain> findAllByStatus(CustomerStatus status);
-    void insert(CustomerDomain customer);
+    List<CustomerDomain> findAll();
+    CustomerDomain findById(String id);
+    CustomerDomain insert(CustomerDomain customer);
+    CustomerDomain update(CustomerDomain customer);
+    void delete(String id);
 }
