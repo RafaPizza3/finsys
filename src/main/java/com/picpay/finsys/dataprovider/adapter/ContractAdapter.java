@@ -34,23 +34,22 @@ public class ContractAdapter implements ContractGateway {
 
     @Override
     public ContractDomain findById(String id) {
-        return contractMapper.toDomain(
-                contractRepository.findById(id).get()
-        );
+        var entity = contractRepository.findById(id).get();
+        return contractMapper.toDomain(entity);
     }
 
     @Override
     public ContractDomain insert(ContractDomain contract) {
-        return contractMapper.toDomain(contractRepository.insert(
-                contractMapper.toEntity(contract)
-        ));
+        var entity = contractMapper.toEntity(contract);
+        var saved = contractRepository.insert(entity);
+        return contractMapper.toDomain(saved);
     }
 
     @Override
     public ContractDomain update(ContractDomain contract) {
-        return contractMapper.toDomain(contractRepository.save(
-                contractMapper.toEntity(contract)
-        ));
+        var entity = contractMapper.toEntity(contract);
+        var saved = contractRepository.save(entity);
+        return contractMapper.toDomain(saved);
     }
 
     @Override
