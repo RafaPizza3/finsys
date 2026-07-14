@@ -1,6 +1,7 @@
 package com.picpay.finsys.core.usecase.impl;
 
 import com.picpay.finsys.core.domain.ContractDomain;
+import com.picpay.finsys.core.exception.ContractNotFoundException;
 import com.picpay.finsys.core.gateway.ContractGateway;
 import com.picpay.finsys.core.usecase.FindContractByIdUseCase;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +14,11 @@ public class FindContractByIdUseCaseImpl implements FindContractByIdUseCase {
 
 
     @Override
-    public ContractDomain execute(String id) {
-        return contractGateway.findById(id);
+    public ContractDomain execute(String id) throws ContractNotFoundException {
+        ContractDomain domain = contractGateway.findById(id);
+        if(domain == null) {
+            throw new ContractNotFoundException(id);
+        }
+        return domain;
     }
 }

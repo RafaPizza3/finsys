@@ -34,7 +34,7 @@ public class CustomerAdapter implements CustomerGateway {
 
     @Override
     public CustomerDomain findById(String id) {
-        var entity = customerRepository.findById(id).get();
+        var entity = customerRepository.findById(id).orElse(null);
         return customerMapper.toDomain(entity);
     }
 

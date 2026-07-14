@@ -1,24 +1,16 @@
-package com.picpay.finsys.dataprovider.entity;
+package com.picpay.finsys.entrypoint.dto.response;
 
 import com.picpay.finsys.core.domain.enumeration.InstallmentStatus;
 import lombok.Builder;
 import lombok.Getter;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
 
 @Getter
 @Builder
-public class InstallmentEntity {
-    private String id;
-
+public class InstallmentResponse {
     private Double amount;
-
     private InstallmentStatus status;
-
-    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private LocalDateTime dueDate;
-
-    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private LocalDateTime paidDate;
 }

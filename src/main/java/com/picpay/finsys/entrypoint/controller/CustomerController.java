@@ -2,7 +2,12 @@ package com.picpay.finsys.entrypoint.controller;
 
 import com.picpay.finsys.core.domain.CustomerDomain;
 import com.picpay.finsys.core.domain.enumeration.CustomerStatus;
+import com.picpay.finsys.core.exception.CustomerNotFoundException;
 import com.picpay.finsys.core.usecase.*;
+import com.picpay.finsys.entrypoint.dto.request.CustomerRequest;
+import com.picpay.finsys.entrypoint.dto.request.CustomerUpdateRequest;
+import com.picpay.finsys.entrypoint.dto.response.CustomerResponse;
+import com.picpay.finsys.entrypoint.mapper.CustomerMapperDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,6 +17,8 @@ import java.util.List;
 @RequestMapping("/v1/customer")
 @RequiredArgsConstructor
 public class CustomerController {
+    private final CustomerMapperDTO customerMapper;
+
     private final FindCustomerByStatusUseCase findCustomerByStatusUseCase;
     private final FindAllCustomerUseCase findAllCustomerUseCase;
     private final FindCustomerByIdUseCase findCustomerByIdUseCase;
@@ -20,32 +27,42 @@ public class CustomerController {
     private final DeleteCustomerUseCase deleteCustomerUseCase;
 
     @GetMapping("/status/{status}")
-    public List<CustomerDomain> findAllByStatus(@PathVariable CustomerStatus status) {
-        return findCustomerByStatusUseCase.execute(status);
+    public List<CustomerResponse> findAllByStatus(@PathVariable CustomerStatus status) {
+        List<CustomerDomain> domain = findCustomerByStatusUseCase.execute(status);
+        return domain.stream()
+                .map(customerMapper::toResponse)
+                .toList();
     }
 
     @GetMapping
-    public List<CustomerDomain> findAll() {
-        return findAllCustomerUseCase.execute();
+    public List<CustomerResponse> findAll() {
+        List<CustomerDomain> domain = findAllCustomerUseCase.execute();
+        return domain.stream()
+                .map(customerMapper::toResponse)
+                .toList();
     }
 
     @GetMapping("/{id}")
-    public CustomerDomain findById(@PathVariable String id) {
-        return findCustomerByIdUseCase.execute(id);
+    public CustomerResponse findById(@PathVariable String id) throws CustomerNotFoundException {
+        CustomerDomain domain = findCustomerByIdUseCase.execute(id);
+        return customerMapper.toResponse(domain);
     }
 
     @PostMapping
-    public CustomerDomain insert(@RequestBody CustomerDomain customer) {
-        return insertCustomerUseCase.execute(customer);
+    public CustomerResponse insert(@RequestBody CustomerRequest customer) {
+        CustomerDomain requestDomain = customerMapper.toDomain(customer);
+        CustomerDomain responseDomain = insertCustomerUseCase.execute(requestDomain);
+        return customerMapper.toResponse(responseDomain);
     }
 
     @PutMapping
-    public CustomerDomain update(@RequestBody CustomerDomain customer) {
-        return updateCustomerUseCase.execute(customer);
+    public CustomerDomain update(@RequestBody CustomerUpdateRequest data) throws CustomerNotFoundException {
+        CustomerDomain domain = customerMapper.toDomain(data.getRequest());
+        return updateCustomerUseCase.execute(data.getId(), domain);
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable String id) {
+    public void delete(@PathVariable String id) throws CustomerNotFoundException {
         deleteCustomerUseCase.execute(id);
     }
 }

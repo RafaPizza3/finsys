@@ -2,7 +2,13 @@ package com.picpay.finsys.entrypoint.controller;
 
 import com.picpay.finsys.core.domain.ContractDomain;
 import com.picpay.finsys.core.domain.enumeration.ContractStatus;
+import com.picpay.finsys.core.exception.ContractNotFoundException;
 import com.picpay.finsys.core.usecase.*;
+import com.picpay.finsys.entrypoint.dto.request.ContractRequest;
+import com.picpay.finsys.entrypoint.dto.request.ContractUpdateRequest;
+import com.picpay.finsys.entrypoint.dto.response.ContractResponse;
+import com.picpay.finsys.entrypoint.mapper.ContractMapperDTO;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,6 +18,8 @@ import java.util.List;
 @RequestMapping("/v1/contract")
 @RequiredArgsConstructor
 public class ContractController {
+    private final ContractMapperDTO contractMapper;
+
     private final FindContractByStatusUseCase findContractByStatusUseCase;
     private final FindAllContractUseCase findAllContractUseCase;
     private final FindContractByIdUseCase findContractByIdUseCase;
@@ -20,32 +28,43 @@ public class ContractController {
     private final DeleteContractUseCase deleteContractUseCase;
 
     @GetMapping("/status/{status}")
-    public List<ContractDomain> findAllByStatus(@PathVariable ContractStatus status) {
-        return findContractByStatusUseCase.execute(status);
+    public List<ContractResponse> findAllByStatus(@PathVariable ContractStatus status) {
+        List<ContractDomain> domainList = findContractByStatusUseCase.execute(status);
+        return domainList.stream()
+                .map(contractMapper::toResponse)
+                .toList();
     }
 
     @GetMapping
-    public List<ContractDomain> findAll() {
-        return findAllContractUseCase.execute();
+    public List<ContractResponse> findAll() {
+        List<ContractDomain> domainList = findAllContractUseCase.execute();
+        return domainList.stream()
+                .map(contractMapper::toResponse)
+                .toList();
     }
 
     @GetMapping("/{id}")
-    public ContractDomain findById(String id) {
-        return findContractByIdUseCase.execute(id);
+    public ContractResponse findById(@PathVariable String id) throws ContractNotFoundException {
+        ContractDomain domain = findContractByIdUseCase.execute(id);
+        return contractMapper.toResponse(domain);
     }
 
     @PostMapping
-    public ContractDomain insert(@RequestBody ContractDomain contract) {
-        return insertContractUseCase.execute(contract);
+    public ContractResponse insert(@RequestBody @Valid ContractRequest contract) {
+        ContractDomain requestDomain = contractMapper.toDomain(contract);
+        ContractDomain responseDomain = insertContractUseCase.execute(requestDomain);
+        return contractMapper.toResponse(responseDomain);
     }
 
     @PutMapping
-    public ContractDomain update(@RequestBody ContractDomain contract) {
-        return updateContractUseCase.execute(contract);
+    public ContractResponse update(@RequestBody @Valid ContractUpdateRequest data) throws ContractNotFoundException {
+        ContractDomain requestDomain = contractMapper.toDomain(data.getRequest());
+        ContractDomain responseDomain = updateContractUseCase.execute(data.getId(), requestDomain);
+        return contractMapper.toResponse(responseDomain);
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable String id) {
+    public void delete(@PathVariable String id) throws ContractNotFoundException {
         deleteContractUseCase.execute(id);
     }
 }

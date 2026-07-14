@@ -2,7 +2,9 @@ package com.picpay.finsys.dataprovider.adapter;
 
 import com.picpay.finsys.core.domain.ContractDomain;
 import com.picpay.finsys.core.domain.enumeration.ContractStatus;
+import com.picpay.finsys.core.exception.ContractNotFoundException;
 import com.picpay.finsys.core.gateway.ContractGateway;
+import com.picpay.finsys.dataprovider.entity.ContractEntity;
 import com.picpay.finsys.dataprovider.mapper.ContractMapper;
 import com.picpay.finsys.dataprovider.repository.ContractRepository;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +36,7 @@ public class ContractAdapter implements ContractGateway {
 
     @Override
     public ContractDomain findById(String id) {
-        var entity = contractRepository.findById(id).get();
+        var entity = contractRepository.findById(id).orElse(null);
         return contractMapper.toDomain(entity);
     }
 
