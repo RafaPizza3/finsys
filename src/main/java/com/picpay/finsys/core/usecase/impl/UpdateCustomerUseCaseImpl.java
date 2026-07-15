@@ -31,8 +31,20 @@ public class UpdateCustomerUseCaseImpl implements UpdateCustomerUseCase {
         LocalDateTime createdAt = LocalDateTime.now();
         CustomerStatus status = CustomerStatus.ACTIVE;
 
-        CustomerDomain domain = CustomerDomain.builder()
-                .id(id)
+        CustomerDomain domain = createObject(name, document, createdAt, status, email, birthDate);
+
+        return customerGateway.update(domain);
+    }
+
+    private CustomerDomain createObject(
+            String name,
+            String document,
+            LocalDateTime createdAt,
+            CustomerStatus status,
+            String email,
+            LocalDateTime birthDate
+    ) {
+        return CustomerDomain.builder()
                 .name(name)
                 .document(document)
                 .createdAt(createdAt)
@@ -40,7 +52,5 @@ public class UpdateCustomerUseCaseImpl implements UpdateCustomerUseCase {
                 .email(email)
                 .birthDate(birthDate)
                 .build();
-
-        return customerGateway.update(domain);
     }
 }

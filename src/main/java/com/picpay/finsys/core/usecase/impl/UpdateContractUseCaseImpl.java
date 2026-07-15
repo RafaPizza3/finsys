@@ -33,7 +33,28 @@ public class UpdateContractUseCaseImpl implements UpdateContractUseCase {
         Double installmentAmount = totalAmount / period;
         LocalDateTime startDate = LocalDateTime.now();
         LocalDateTime endDate = startDate.plusMonths(period);
-        ContractStatus staus = ContractStatus.ACTIVE;
+        ContractStatus status = ContractStatus.ACTIVE;
+
+        List<InstallmentDomain> installments = createInstallments(period, installmentAmount);
+
+        ContractDomain domain = createObject(
+                customerId,
+                totalAmount,
+                period,
+                installmentAmount,
+                startDate,
+                endDate,
+                status,
+                installments
+        );
+
+        return contractGateway.update(domain);
+    }
+
+    private List<InstallmentDomain> createInstallments(
+            Integer period,
+            Double installmentAmount
+    ) {
         List<InstallmentDomain> installments = new ArrayList<>();
 
         for (int i = 1; i <= period; i++) {
@@ -47,18 +68,28 @@ public class UpdateContractUseCaseImpl implements UpdateContractUseCase {
             installments.add(installment);
         }
 
-        ContractDomain domain = ContractDomain.builder()
-                .id(id)
+        return installments;
+    }
+
+    private ContractDomain createObject(
+            String customerId,
+            Double totalAmount,
+            Integer period,
+            Double installmentAmount,
+            LocalDateTime startDate,
+            LocalDateTime endDate,
+            ContractStatus status,
+            List<InstallmentDomain> installments
+    ) {
+        return ContractDomain.builder()
                 .customerId(customerId)
                 .totalAmount(totalAmount)
                 .period(period)
                 .installmentAmount(installmentAmount)
                 .startDate(startDate)
                 .endDate(endDate)
-                .status(staus)
+                .status(status)
                 .installments(installments)
                 .build();
-
-        return contractGateway.update(domain);
     }
 }

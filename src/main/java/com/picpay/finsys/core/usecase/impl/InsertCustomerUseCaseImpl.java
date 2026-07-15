@@ -24,7 +24,20 @@ public class InsertCustomerUseCaseImpl implements InsertCustomerUseCase {
         LocalDateTime createdAt = LocalDateTime.now();
         CustomerStatus status = CustomerStatus.ACTIVE;
 
-        CustomerDomain domain = CustomerDomain.builder()
+        CustomerDomain domain = createObject(name, document, createdAt, status, email, birthDate);
+
+        return customerGateway.insert(domain);
+    }
+
+    private CustomerDomain createObject(
+            String name,
+            String document,
+            LocalDateTime createdAt,
+            CustomerStatus status,
+            String email,
+            LocalDateTime birthDate
+    ) {
+        return CustomerDomain.builder()
                 .name(name)
                 .document(document)
                 .createdAt(createdAt)
@@ -32,6 +45,5 @@ public class InsertCustomerUseCaseImpl implements InsertCustomerUseCase {
                 .email(email)
                 .birthDate(birthDate)
                 .build();
-        return customerGateway.insert(domain);
     }
 }

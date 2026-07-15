@@ -3,13 +3,25 @@ package com.picpay.finsys.entrypoint.controller;
 import com.picpay.finsys.core.domain.CustomerDomain;
 import com.picpay.finsys.core.domain.enumeration.CustomerStatus;
 import com.picpay.finsys.core.exception.CustomerNotFoundException;
-import com.picpay.finsys.core.usecase.*;
+import com.picpay.finsys.core.usecase.FindCustomerByStatusUseCase;
+import com.picpay.finsys.core.usecase.FindAllCustomerUseCase;
+import com.picpay.finsys.core.usecase.FindCustomerByIdUseCase;
+import com.picpay.finsys.core.usecase.InsertCustomerUseCase;
+import com.picpay.finsys.core.usecase.UpdateCustomerUseCase;
+import com.picpay.finsys.core.usecase.DeleteCustomerUseCase;
 import com.picpay.finsys.entrypoint.dto.request.CustomerRequest;
-import com.picpay.finsys.entrypoint.dto.request.CustomerUpdateRequest;
 import com.picpay.finsys.entrypoint.dto.response.CustomerResponse;
 import com.picpay.finsys.entrypoint.mapper.CustomerMapperDTO;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
 
@@ -49,16 +61,16 @@ public class CustomerController {
     }
 
     @PostMapping
-    public CustomerResponse insert(@RequestBody CustomerRequest customer) {
+    public CustomerResponse insert(@RequestBody @Valid CustomerRequest customer) {
         CustomerDomain requestDomain = customerMapper.toDomain(customer);
         CustomerDomain responseDomain = insertCustomerUseCase.execute(requestDomain);
         return customerMapper.toResponse(responseDomain);
     }
 
-    @PutMapping
-    public CustomerDomain update(@RequestBody CustomerUpdateRequest data) throws CustomerNotFoundException {
-        CustomerDomain domain = customerMapper.toDomain(data.getRequest());
-        return updateCustomerUseCase.execute(data.getId(), domain);
+    @PutMapping("/{id}")
+    public CustomerDomain update(@PathVariable String id, @RequestBody @Valid CustomerRequest request) throws CustomerNotFoundException {
+        CustomerDomain domain = customerMapper.toDomain(request);
+        return updateCustomerUseCase.execute(id, domain);
     }
 
     @DeleteMapping("/{id}")
