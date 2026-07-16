@@ -4,6 +4,8 @@ import com.picpay.finsys.core.domain.ContractDomain;
 import com.picpay.finsys.core.gateway.ContractGateway;
 import com.picpay.finsys.core.usecase.FindAllContractUseCase;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,7 +16,7 @@ public class FindAllContractUseCaseImpl implements FindAllContractUseCase {
     private final ContractGateway contractGateway;
 
     @Override
-    public List<ContractDomain> execute() {
-        return contractGateway.findAll();
+    public Page<ContractDomain> execute(Pageable page) {
+        return contractGateway.findAll(page);
     }
 }

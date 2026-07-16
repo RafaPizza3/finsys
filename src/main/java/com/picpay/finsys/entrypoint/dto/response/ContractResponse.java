@@ -13,7 +13,9 @@ import java.util.List;
 public class ContractResponse {
     private String id;
     private String customerId;
+    private Double value;
     private Double totalAmount;
+    private Double interestRate;
     private Integer period;
     private Double installmentAmount;
     private LocalDateTime startDate;

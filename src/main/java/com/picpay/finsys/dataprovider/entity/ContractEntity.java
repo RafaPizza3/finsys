@@ -19,7 +19,11 @@ public class ContractEntity {
 
     private String customerId;
 
+    private Double value;
+
     private Double totalAmount;
+
+    private Double interestRate;
 
     private Integer period;
 

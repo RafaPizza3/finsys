@@ -2,12 +2,14 @@ package com.picpay.finsys.core.gateway;
 
 import com.picpay.finsys.core.domain.ContractDomain;
 import com.picpay.finsys.core.domain.enumeration.ContractStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
 public interface ContractGateway {
-    List<ContractDomain> findAllByStatus(ContractStatus status);
-    List<ContractDomain> findAll();
+    Page<ContractDomain> findAllByStatus(ContractStatus status, Pageable page);
+    Page<ContractDomain> findAll(Pageable page);
     ContractDomain findById(String id);
     ContractDomain insert(ContractDomain contract);
     ContractDomain update(ContractDomain contract);

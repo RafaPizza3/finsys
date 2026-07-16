@@ -1,22 +1,18 @@
 package com.picpay.finsys.entrypoint.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
 
 @Getter
 @Builder
-public class ContractRequest {
+public class ContractUpdateRequest {
     @Schema(description = "Customer ID of the customer that is making the contract", example = "1")
-    @NotNull(message = "customer ID must not be null")
     private String customerId;
 
     @Schema(description = "Contract requested value", example = "5000")
-    @NotNull(message = "value must not be null")
     private Double value;
 
     @Schema(description = "Contract period in months")
-    @NotNull(message = "period must not be null")
     private Integer period;
 }

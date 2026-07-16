@@ -1,11 +1,13 @@
 package com.picpay.finsys.core.usecase.impl;
 
+import com.picpay.finsys.core.domain.ContractDomain;
 import com.picpay.finsys.core.domain.CustomerDomain;
 import com.picpay.finsys.core.domain.enumeration.CustomerStatus;
 import com.picpay.finsys.core.exception.CustomerNotFoundException;
 import com.picpay.finsys.core.gateway.CustomerGateway;
 import com.picpay.finsys.core.usecase.UpdateCustomerUseCase;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.BadRequestException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -17,26 +19,46 @@ public class UpdateCustomerUseCaseImpl implements UpdateCustomerUseCase {
 
 
     @Override
-    public CustomerDomain execute(String id, CustomerDomain customer) throws CustomerNotFoundException {
+    public CustomerDomain execute(String id, CustomerDomain customer) throws BadRequestException {
+        verifyCustomer(id);
+
+        verifyRequest(customer);
+
         CustomerDomain dbCustomer = customerGateway.findById(id);
-        if(dbCustomer == null) {
-            throw new CustomerNotFoundException(id);
+
+        if(customer.getName() != null) {
+            dbCustomer.setName(customer.getName());
         }
 
-        String name = customer.getName();
-        String document = customer.getDocument();
-        String email = customer.getEmail();
-        LocalDateTime birthDate = customer.getBirthDate();
+        if(customer.getDocument() != null) {
+            dbCustomer.setDocument(customer.getDocument());
+        }
 
-        LocalDateTime createdAt = LocalDateTime.now();
-        CustomerStatus status = CustomerStatus.ACTIVE;
+        if(customer.getEmail() != null) {
+            dbCustomer.setEmail(customer.getEmail());
+        }
 
-        CustomerDomain domain = createObject(name, document, createdAt, status, email, birthDate);
+        if(customer.getBirthDate() != null) {
+            dbCustomer.setBirthDate(customer.getBirthDate());
+        }
+
+        System.out.println("email que veio: " + customer.getEmail() + "email que foi: " + dbCustomer.getEmail());
+
+        CustomerDomain domain = createObject(
+                dbCustomer.getId(),
+                dbCustomer.getName(),
+                dbCustomer.getDocument(),
+                dbCustomer.getCreatedAt(),
+                dbCustomer.getStatus(),
+                dbCustomer.getEmail(),
+                dbCustomer.getBirthDate()
+        );
 
         return customerGateway.update(domain);
     }
 
     private CustomerDomain createObject(
+            String id,
             String name,
             String document,
             LocalDateTime createdAt,
@@ -45,6 +67,7 @@ public class UpdateCustomerUseCaseImpl implements UpdateCustomerUseCase {
             LocalDateTime birthDate
     ) {
         return CustomerDomain.builder()
+                .id(id)
                 .name(name)
                 .document(document)
                 .createdAt(createdAt)
@@ -52,5 +75,24 @@ public class UpdateCustomerUseCaseImpl implements UpdateCustomerUseCase {
                 .email(email)
                 .birthDate(birthDate)
                 .build();
+    }
+
+    private void verifyRequest(CustomerDomain request) throws BadRequestException {
+        if (
+                request.getName() == null
+                        && request.getDocument() == null
+                        && request.getEmail() == null
+                        && request.getBirthDate() == null
+        ) {
+            throw new BadRequestException("at least 1 value must be requested");
+        }
+    }
+
+    private void verifyCustomer(String customerId) throws CustomerNotFoundException {
+        CustomerDomain customer = customerGateway.findById(customerId);
+
+        if(customer == null) {
+            throw new CustomerNotFoundException(customerId);
+        }
     }
 }
