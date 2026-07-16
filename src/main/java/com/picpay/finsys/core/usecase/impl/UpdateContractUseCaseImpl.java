@@ -179,14 +179,14 @@ public class UpdateContractUseCaseImpl implements UpdateContractUseCase {
     }
 
     private void verifyValue(Double requestValue, Double originalValue) throws BadRequestException {
-        if(requestValue < originalValue) {
-            throw new BadRequestException("new contract value must be bigger or equals original value");
+        if(requestValue <= originalValue) {
+            throw new BadRequestException("new contract value must be bigger than original value");
         }
     }
 
     private void verifyPeriod(Integer requestPeriod, Integer originalPeriod) throws BadRequestException {
         if(requestPeriod < originalPeriod) {
-            throw new BadRequestException("new contract value must be bigger or equals original value");
+            throw new BadRequestException("new contract value must be bigger than or equals original value");
         }
     }
 
