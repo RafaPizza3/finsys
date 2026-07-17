@@ -5,6 +5,8 @@ import com.picpay.finsys.core.domain.enumeration.ContractStatus;
 import com.picpay.finsys.core.gateway.ContractGateway;
 import com.picpay.finsys.core.usecase.FindContractByStatusUseCase;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,7 +18,7 @@ public class FindContractByStatusUseCaseImpl implements FindContractByStatusUseC
 
 
     @Override
-    public List<ContractDomain> execute(ContractStatus status) {
-        return contractGateway.findAllByStatus(status);
+    public Page<ContractDomain> execute(ContractStatus status, Pageable page) {
+        return contractGateway.findAllByStatus(status, page);
     }
 }

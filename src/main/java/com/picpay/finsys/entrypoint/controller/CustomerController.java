@@ -2,16 +2,44 @@ package com.picpay.finsys.entrypoint.controller;
 
 import com.picpay.finsys.core.domain.CustomerDomain;
 import com.picpay.finsys.core.domain.enumeration.CustomerStatus;
-import com.picpay.finsys.core.usecase.*;
+import com.picpay.finsys.core.exception.CustomerNotFoundException;
+import com.picpay.finsys.core.usecase.FindCustomerByStatusUseCase;
+import com.picpay.finsys.core.usecase.FindAllCustomerUseCase;
+import com.picpay.finsys.core.usecase.FindCustomerByIdUseCase;
+import com.picpay.finsys.core.usecase.InsertCustomerUseCase;
+import com.picpay.finsys.core.usecase.UpdateCustomerUseCase;
+import com.picpay.finsys.core.usecase.DeleteCustomerUseCase;
+import com.picpay.finsys.entrypoint.controller.docs.CustomerControllerDocs;
+import com.picpay.finsys.entrypoint.dto.request.CustomerRequest;
+import com.picpay.finsys.entrypoint.dto.request.CustomerUpdateRequest;
+import com.picpay.finsys.entrypoint.dto.response.CustomerResponse;
+import com.picpay.finsys.entrypoint.mapper.CustomerMapperDTO;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
+import org.apache.coyote.BadRequestException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/v1/customer")
+@RequestMapping("/v1/customers")
 @RequiredArgsConstructor
-public class CustomerController {
+public class CustomerController implements CustomerControllerDocs {
+    private final CustomerMapperDTO customerMapper;
+
     private final FindCustomerByStatusUseCase findCustomerByStatusUseCase;
     private final FindAllCustomerUseCase findAllCustomerUseCase;
     private final FindCustomerByIdUseCase findCustomerByIdUseCase;
@@ -19,33 +47,66 @@ public class CustomerController {
     private final UpdateCustomerUseCase updateCustomerUseCase;
     private final DeleteCustomerUseCase deleteCustomerUseCase;
 
+    @Override
     @GetMapping("/status/{status}")
-    public List<CustomerDomain> findAllByStatus(@PathVariable CustomerStatus status) {
-        return findCustomerByStatusUseCase.execute(status);
+    @ResponseStatus(HttpStatus.OK)
+    public Page<CustomerResponse> findAllByStatus(
+            @PathVariable CustomerStatus status,
+            @PageableDefault(size = 5) Pageable page
+    ) {
+        Page<CustomerDomain> domainPage = findCustomerByStatusUseCase.execute(status, page);
+        List<CustomerResponse> domainList = domainPage
+                .stream()
+                .map(customerMapper::toResponse)
+                .toList();
+
+        return new PageImpl<>(domainList, page, domainPage.getTotalElements());
     }
 
+    @Override
     @GetMapping
-    public List<CustomerDomain> findAll() {
-        return findAllCustomerUseCase.execute();
+    @ResponseStatus(HttpStatus.OK)
+    public Page<CustomerResponse> findAll(@PageableDefault(size = 5) Pageable page) {
+        Page<CustomerDomain> domainPage = findAllCustomerUseCase.execute(page);
+        List<CustomerResponse> domainList = domainPage
+                .stream()
+                .map(customerMapper::toResponse)
+                .toList();
+
+        return new PageImpl<>(domainList, page, domainPage.getTotalElements());
     }
 
+    @Override
     @GetMapping("/{id}")
-    public CustomerDomain findById(@PathVariable String id) {
-        return findCustomerByIdUseCase.execute(id);
+    @ResponseStatus(HttpStatus.OK)
+    public CustomerResponse findById(@PathVariable String id) throws CustomerNotFoundException {
+        CustomerDomain domain = findCustomerByIdUseCase.execute(id);
+        return customerMapper.toResponse(domain);
     }
 
+    @Override
     @PostMapping
-    public CustomerDomain insert(@RequestBody CustomerDomain customer) {
-        return insertCustomerUseCase.execute(customer);
+    @ResponseStatus(HttpStatus.CREATED)
+    public CustomerResponse insert(@RequestBody @Valid CustomerRequest customer) {
+        CustomerDomain requestDomain = customerMapper.toDomain(customer);
+        CustomerDomain responseDomain = insertCustomerUseCase.execute(requestDomain);
+        return customerMapper.toResponse(responseDomain);
     }
 
-    @PutMapping
-    public CustomerDomain update(@RequestBody CustomerDomain customer) {
-        return updateCustomerUseCase.execute(customer);
+    @Override
+    @PutMapping("/{id}")
+    @ResponseStatus(HttpStatus.CREATED)
+    public CustomerResponse update(@PathVariable String id, @RequestBody CustomerUpdateRequest request) throws BadRequestException {
+        CustomerDomain domain = customerMapper.toDomain(request);
+        domain.setId(id);
+        CustomerDomain responseDomain = updateCustomerUseCase.execute(id, domain);
+        return customerMapper.toResponse(responseDomain);
     }
 
+    @Override
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable String id) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable String id) throws CustomerNotFoundException {
         deleteCustomerUseCase.execute(id);
     }
 }

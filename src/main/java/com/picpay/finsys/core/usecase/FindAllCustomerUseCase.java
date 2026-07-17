@@ -1,9 +1,9 @@
 package com.picpay.finsys.core.usecase;
 
 import com.picpay.finsys.core.domain.CustomerDomain;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface FindAllCustomerUseCase {
-    List<CustomerDomain> execute();
+    Page<CustomerDomain> execute(Pageable page);
 }

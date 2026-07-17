@@ -5,6 +5,8 @@ import com.picpay.finsys.core.domain.enumeration.CustomerStatus;
 import com.picpay.finsys.core.gateway.CustomerGateway;
 import com.picpay.finsys.core.usecase.FindCustomerByStatusUseCase;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,7 +17,7 @@ public class FindCustomerByStatusUseCaseImpl implements FindCustomerByStatusUseC
     private final CustomerGateway customerGateway;
 
     @Override
-    public List<CustomerDomain> execute(CustomerStatus status) {
-        return customerGateway.findAllByStatus(status);
+    public Page<CustomerDomain> execute(CustomerStatus status, Pageable page) {
+        return customerGateway.findAllByStatus(status, page);
     }
 }

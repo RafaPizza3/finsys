@@ -1,17 +1,14 @@
-package com.picpay.finsys.core.domain;
+package com.picpay.finsys.entrypoint.dto.response;
 
 import com.picpay.finsys.core.domain.enumeration.InstallmentStatus;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @Getter
-@Setter
 @Builder
-public class InstallmentDomain {
-    private String id;
+public class InstallmentResponse {
     private Double amount;
     private InstallmentStatus status;
     private LocalDateTime dueDate;

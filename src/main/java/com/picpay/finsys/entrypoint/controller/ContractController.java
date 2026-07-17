@@ -2,16 +2,45 @@ package com.picpay.finsys.entrypoint.controller;
 
 import com.picpay.finsys.core.domain.ContractDomain;
 import com.picpay.finsys.core.domain.enumeration.ContractStatus;
-import com.picpay.finsys.core.usecase.*;
+import com.picpay.finsys.core.exception.ContractNotFoundException;
+import com.picpay.finsys.core.exception.CustomerNotFoundException;
+import com.picpay.finsys.core.usecase.FindContractByStatusUseCase;
+import com.picpay.finsys.core.usecase.FindAllContractUseCase;
+import com.picpay.finsys.core.usecase.FindContractByIdUseCase;
+import com.picpay.finsys.core.usecase.InsertContractUseCase;
+import com.picpay.finsys.core.usecase.UpdateContractUseCase;
+import com.picpay.finsys.core.usecase.DeleteContractUseCase;
+import com.picpay.finsys.entrypoint.controller.docs.ContractControllerDocs;
+import com.picpay.finsys.entrypoint.dto.request.ContractRequest;
+import com.picpay.finsys.entrypoint.dto.request.ContractUpdateRequest;
+import com.picpay.finsys.entrypoint.dto.response.ContractResponse;
+import com.picpay.finsys.entrypoint.mapper.ContractMapperDTO;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
+import org.apache.coyote.BadRequestException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/v1/contract")
+@RequestMapping("/v1/contracts")
 @RequiredArgsConstructor
-public class ContractController {
+public class ContractController implements ContractControllerDocs {
+    private final ContractMapperDTO contractMapper;
+
     private final FindContractByStatusUseCase findContractByStatusUseCase;
     private final FindAllContractUseCase findAllContractUseCase;
     private final FindContractByIdUseCase findContractByIdUseCase;
@@ -19,33 +48,65 @@ public class ContractController {
     private final UpdateContractUseCase updateContractUseCase;
     private final DeleteContractUseCase deleteContractUseCase;
 
+    @Override
     @GetMapping("/status/{status}")
-    public List<ContractDomain> findAllByStatus(@PathVariable ContractStatus status) {
-        return findContractByStatusUseCase.execute(status);
+    @ResponseStatus(HttpStatus.OK)
+    public Page<ContractResponse> findAllByStatus(
+            @PathVariable ContractStatus status, @PageableDefault(size = 5) Pageable page
+    ) {
+        Page<ContractDomain> domainPage = findContractByStatusUseCase.execute(status, page);
+        List<ContractResponse> domainList = domainPage
+                .stream()
+                .map(contractMapper::toResponse)
+                .toList();
+
+        return new PageImpl<>(domainList, page, domainPage.getTotalElements());
     }
 
+    @Override
     @GetMapping
-    public List<ContractDomain> findAll() {
-        return findAllContractUseCase.execute();
+    @ResponseStatus(HttpStatus.OK)
+    public Page<ContractResponse> findAll(@PageableDefault(size = 5) Pageable page) {
+        Page<ContractDomain> domainPage = findAllContractUseCase.execute(page);
+        List<ContractResponse> domainList = domainPage
+                .stream()
+                .map(contractMapper::toResponse)
+                .toList();
+
+        return new PageImpl<>(domainList, page, domainPage.getTotalElements());
     }
 
+    @Override
     @GetMapping("/{id}")
-    public ContractDomain findById(String id) {
-        return findContractByIdUseCase.execute(id);
+    @ResponseStatus(HttpStatus.OK)
+    public ContractResponse findById(@PathVariable String id) throws ContractNotFoundException {
+        ContractDomain domain = findContractByIdUseCase.execute(id);
+        return contractMapper.toResponse(domain);
     }
 
+    @Override
     @PostMapping
-    public ContractDomain insert(@RequestBody ContractDomain contract) {
-        return insertContractUseCase.execute(contract);
+    @ResponseStatus(HttpStatus.CREATED)
+    public ContractResponse insert(@RequestBody @Valid ContractRequest contract) throws CustomerNotFoundException {
+        ContractDomain requestDomain = contractMapper.toDomain(contract);
+        ContractDomain responseDomain = insertContractUseCase.execute(requestDomain);
+        return contractMapper.toResponse(responseDomain);
     }
 
-    @PutMapping
-    public ContractDomain update(@RequestBody ContractDomain contract) {
-        return updateContractUseCase.execute(contract);
+    @Override
+    @PutMapping("/{id}")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ContractResponse update(@PathVariable String id, @RequestBody ContractUpdateRequest request) throws BadRequestException {
+        ContractDomain requestDomain = contractMapper.toDomain(request);
+        requestDomain.setId(id);
+        ContractDomain responseDomain = updateContractUseCase.execute(id, requestDomain);
+        return contractMapper.toResponse(responseDomain);
     }
 
+    @Override
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable String id) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable String id) throws ContractNotFoundException {
         deleteContractUseCase.execute(id);
     }
 }
