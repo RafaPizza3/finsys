@@ -10,6 +10,7 @@ import com.picpay.finsys.core.gateway.ContractGateway;
 import com.picpay.finsys.core.gateway.CustomerGateway;
 import com.picpay.finsys.core.usecase.InsertContractUseCase;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.BadRequestException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -23,16 +24,16 @@ public class InsertContractUseCaseImpl implements InsertContractUseCase {
     private final CustomerGateway customerGateway;
 
     @Override
-    public ContractDomain execute(ContractDomain contract) throws CustomerNotFoundException {
+    public ContractDomain execute(ContractDomain contract) throws BadRequestException {
         verifyCustomer(contract.getCustomerId());
 
-        Double interestRate = 4.0;
+        Double monthlyInterestRate = 4.0;
 
         String customerId = contract.getCustomerId();
-        Double value = contract.getValue();
+        Double requestedAmount = contract.getRequestedAmount();
         Integer period = contract.getPeriod();
 
-        Double installmentAmount = calcInstallmentAmount(value, period, interestRate);
+        Double installmentAmount = calcInstallmentAmount(requestedAmount, period, monthlyInterestRate);
         Double totalAmount = installmentAmount * period;
         LocalDateTime startDate = LocalDateTime.now();
         LocalDateTime endDate = startDate.plusMonths(period);
@@ -40,11 +41,13 @@ public class InsertContractUseCaseImpl implements InsertContractUseCase {
 
         List<InstallmentDomain> installments = createInstallments(period, installmentAmount);
 
+        verifyContractRequestedAmount(requestedAmount);
+
         ContractDomain domain = createObject(
                 customerId,
-                value,
+                requestedAmount,
                 totalAmount,
-                interestRate,
+                monthlyInterestRate,
                 period,
                 installmentAmount,
                 startDate,
@@ -56,9 +59,9 @@ public class InsertContractUseCaseImpl implements InsertContractUseCase {
         return contractGateway.insert(domain);
     }
 
-    private Double calcInstallmentAmount(Double value, Integer period, Double interestRate) {
-        Double incValue = value * interestRate / 100;
-        Double installmentAmount = (value / period) + incValue;
+    private Double calcInstallmentAmount(Double requestedAmount, Integer period, Double interestRate) {
+        Double incValue = requestedAmount * interestRate / 100;
+        Double installmentAmount = (requestedAmount / period) + incValue;
 
         return installmentAmount;
     }
@@ -85,9 +88,9 @@ public class InsertContractUseCaseImpl implements InsertContractUseCase {
 
     private ContractDomain createObject(
             String customerId,
-            Double value,
+            Double requestedAmount,
             Double totalAmount,
-            Double interestRate,
+            Double monthlyInterestRate,
             Integer period,
             Double installmentAmount,
             LocalDateTime startDate,
@@ -97,9 +100,9 @@ public class InsertContractUseCaseImpl implements InsertContractUseCase {
     ) {
         return ContractDomain.builder()
                 .customerId(customerId)
-                .value(value)
+                .requestedAmount(requestedAmount)
                 .totalAmount(totalAmount)
-                .interestRate(interestRate)
+                .monthlyInterestRate(monthlyInterestRate)
                 .period(period)
                 .installmentAmount(installmentAmount)
                 .startDate(startDate)
@@ -114,6 +117,12 @@ public class InsertContractUseCaseImpl implements InsertContractUseCase {
 
         if(customer == null) {
             throw new CustomerNotFoundException(customerId);
+        }
+    }
+
+    private void verifyContractRequestedAmount(Double requestedAmount) throws BadRequestException {
+        if (requestedAmount < 1000) {
+            throw new BadRequestException("contract requested amount must be at least 1000");
         }
     }
 }

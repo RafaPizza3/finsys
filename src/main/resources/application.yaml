@@ -1,6 +1,32 @@
+server:
+  port: ${PORT}
+finsys:
+  viacep:
+    url: ${VIA_CEP_URL}
+
 spring:
   application:
-    name: finsys
+    name: ${APP_NAME}
+  cloud:
+    compatibility-verifier:
+      enabled: false
+    openfeign:
+       client:
+         config:
+           ViaCepClient:
+             connect-timeout: ${VIA_CEP_CONNECT_TIMEOUT}
+             read-timeout: ${VIA_CEP_READ_TIMEOUT}
   data:
     mongodb:
-      uri: mongodb://localhost:37017/finsys
+      uri: ${MONGO_URI}
+
+resilience4j:
+  retry:
+    configs:
+      default:
+        max-attempts: ${DEFAULT_MAX_ATTEMPTS}
+        wait-duration: ${DEFAULT_WAIT_DURATION}
+    instances:
+      viaCepRetry:
+          max-attempts: ${VIA_CEP_MAX_ATTEMPTS}
+          wait-duration: ${VIA_CEP_WAIT_DURATION}

@@ -14,4 +14,5 @@ public interface ContractGateway {
     ContractDomain insert(ContractDomain contract);
     ContractDomain update(ContractDomain contract);
     void delete(String id);
+    Integer countActiveContractsByCustomerId(String customerId, ContractStatus status);
 }

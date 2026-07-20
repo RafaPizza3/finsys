@@ -1,6 +1,7 @@
 package com.picpay.finsys.entrypoint.controller.docs;
 
 import com.picpay.finsys.core.domain.enumeration.ContractStatus;
+import com.picpay.finsys.core.exception.ActiveContractException;
 import com.picpay.finsys.core.exception.ContractNotFoundException;
 import com.picpay.finsys.core.exception.CustomerNotFoundException;
 import com.picpay.finsys.entrypoint.dto.request.ContractRequest;
@@ -74,7 +75,7 @@ public interface ContractControllerDocs {
             )
         }
     )
-    ContractResponse insert(ContractRequest request) throws CustomerNotFoundException;
+    ContractResponse insert(ContractRequest request) throws BadRequestException;
 
     @Operation(
             summary = "Updates a contract",
@@ -107,5 +108,5 @@ public interface ContractControllerDocs {
             )
         }
     )
-    void delete(String id) throws ContractNotFoundException;
+    void delete(String id) throws ContractNotFoundException, ActiveContractException;
 }

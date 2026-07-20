@@ -23,6 +23,10 @@ public class CustomerRequest {
     private String email;
 
     @Schema(description = "Customer birth date")
-    @NotNull(message = "bith date must not be null")
+    @NotNull(message = "birth date must not be null")
     private LocalDateTime birthDate;
+
+    @Schema(description = "Customer address zip code")
+    @NotNull(message = "zip code must not be null")
+    private String zipCode;
 }

@@ -28,4 +28,6 @@ public class CustomerEntity {
     private String email;
 
     private LocalDateTime birthDate;
+
+    private AddressEntity address;
 }

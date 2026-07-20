@@ -27,14 +27,14 @@ public class UpdateContractUseCaseImpl implements UpdateContractUseCase {
     public ContractDomain execute(String id, ContractDomain contract) throws BadRequestException {
         verifyRequest(contract);
 
-        Double interestRate = 4.0;
+        Double monthlyInterestRate = 4.0;
 
         ContractDomain bdContract = contractGateway.findById(id);
         if (bdContract == null) {
             throw new ContractNotFoundException(id);
         }
 
-        verifyValue(contract.getValue(), bdContract.getValue());
+        verifyRequestedAmount(contract.getRequestedAmount(), bdContract.getRequestedAmount());
         verifyPeriod(contract.getPeriod(), bdContract.getPeriod());
 
         Double value = 0.0;
@@ -49,19 +49,19 @@ public class UpdateContractUseCaseImpl implements UpdateContractUseCase {
             bdContract.setPeriod(contract.getPeriod());
         }
 
-        if (contract.getValue() != null) {
+        if (contract.getRequestedAmount() != null) {
             bdContract.setInstallments(
                     adjustInstallmentsByValue(
-                            contract.getValue(),
+                            contract.getRequestedAmount(),
                             bdContract.getPeriod(),
-                            interestRate,
+                            monthlyInterestRate,
                             bdContract.getInstallments()
                     )
             );
 
-            bdContract.setValue(contract.getValue());
-            bdContract.setTotalAmount(calcNewTotalAmount(contract.getValue(), bdContract.getPeriod(), interestRate));
-            bdContract.setInstallmentAmount(calcNewInstallmentAmount(contract.getValue(), bdContract.getPeriod(), interestRate));
+            bdContract.setRequestedAmount(contract.getRequestedAmount());
+            bdContract.setTotalAmount(calcNewTotalAmount(contract.getRequestedAmount(), bdContract.getPeriod(), monthlyInterestRate));
+            bdContract.setInstallmentAmount(calcNewInstallmentAmount(contract.getRequestedAmount(), bdContract.getPeriod(), monthlyInterestRate));
             bdContract.setEndDate(
                     bdContract.getInstallments().getLast().getDueDate()
             );
@@ -70,9 +70,9 @@ public class UpdateContractUseCaseImpl implements UpdateContractUseCase {
         ContractDomain domain = createObject(
                 bdContract.getId(),
                 bdContract.getCustomerId(),
-                bdContract.getValue(),
+                bdContract.getRequestedAmount(),
                 bdContract.getTotalAmount(),
-                interestRate,
+                monthlyInterestRate,
                 bdContract.getPeriod(),
                 bdContract.getInstallmentAmount(),
                 bdContract.getStartDate(),
@@ -87,9 +87,9 @@ public class UpdateContractUseCaseImpl implements UpdateContractUseCase {
     private ContractDomain createObject(
             String id,
             String customerId,
-            Double value,
+            Double requestedAmount,
             Double totalAmount,
-            Double interestRate,
+            Double monthlyInterestRate,
             Integer period,
             Double installmentAmount,
             LocalDateTime startDate,
@@ -100,9 +100,9 @@ public class UpdateContractUseCaseImpl implements UpdateContractUseCase {
         return ContractDomain.builder()
                 .id(id)
                 .customerId(customerId)
-                .value(value)
+                .requestedAmount(requestedAmount)
                 .totalAmount(totalAmount)
-                .interestRate(interestRate)
+                .monthlyInterestRate(monthlyInterestRate)
                 .period(period)
                 .installmentAmount(installmentAmount)
                 .startDate(startDate)
@@ -115,10 +115,10 @@ public class UpdateContractUseCaseImpl implements UpdateContractUseCase {
     private List<InstallmentDomain> adjustInstallmentsByValue(
             Double value,
             Integer period,
-            Double interestRate,
+            Double monthlyInterestRate,
             List<InstallmentDomain> installments
     ) {
-        Double newInstallmentValue = calcNewInstallmentAmount(value, period, interestRate);
+        Double newInstallmentValue = calcNewInstallmentAmount(value, period, monthlyInterestRate);
 
         LocalDateTime now = LocalDateTime.now();
 
@@ -173,14 +173,14 @@ public class UpdateContractUseCaseImpl implements UpdateContractUseCase {
     }
 
     private void verifyRequest(ContractDomain request) throws BadRequestException {
-        if (request.getCustomerId() == null && request.getValue() == null && request.getPeriod() == null) {
+        if (request.getCustomerId() == null && request.getRequestedAmount() == null && request.getPeriod() == null) {
             throw new BadRequestException("at least 1 value must be requested");
         }
     }
 
-    private void verifyValue(Double requestValue, Double originalValue) throws BadRequestException {
-        if(requestValue <= originalValue) {
-            throw new BadRequestException("new contract value must be bigger than original value");
+    private void verifyRequestedAmount(Double newRequestedAmount, Double originalRequestedAmount) throws BadRequestException {
+        if(newRequestedAmount <= originalRequestedAmount) {
+            throw new BadRequestException("new contract requested amount must be bigger than original requested amount");
         }
     }
 

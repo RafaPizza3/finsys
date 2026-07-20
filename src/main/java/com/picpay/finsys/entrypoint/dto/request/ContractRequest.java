@@ -12,9 +12,9 @@ public class ContractRequest {
     @NotNull(message = "customer ID must not be null")
     private String customerId;
 
-    @Schema(description = "Contract requested value", example = "5000")
-    @NotNull(message = "value must not be null")
-    private Double value;
+    @Schema(description = "Contract requested amount", example = "5000")
+    @NotNull(message = "requested amount must not be null")
+    private Double requestedAmount;
 
     @Schema(description = "Contract period in months")
     @NotNull(message = "period must not be null")

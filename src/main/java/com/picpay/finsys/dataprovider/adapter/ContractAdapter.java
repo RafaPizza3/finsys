@@ -66,4 +66,9 @@ public class ContractAdapter implements ContractGateway {
     public void delete(String id) {
         contractRepository.deleteById(id);
     }
+
+    @Override
+    public Integer countActiveContractsByCustomerId(String customerId, ContractStatus status) {
+        return contractRepository.countContractEntitiesByCustomerIdAndStatus(customerId, status);
+    }
 }

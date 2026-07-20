@@ -20,4 +20,7 @@ public class CustomerUpdateRequest {
 
     @Schema(description = "Customer birth date")
     private LocalDateTime birthDate;
+
+    @Schema(description = "Customer residence zip code")
+    private String zipCode;
 }

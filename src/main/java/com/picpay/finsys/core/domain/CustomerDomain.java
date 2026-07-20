@@ -18,4 +18,5 @@ public class CustomerDomain {
     private CustomerStatus status;
     private String email;
     private LocalDateTime birthDate;
+    private AddressDomain address;
 }
