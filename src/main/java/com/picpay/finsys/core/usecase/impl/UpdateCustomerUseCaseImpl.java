@@ -7,7 +7,10 @@ import com.picpay.finsys.core.exception.CustomerNotFoundException;
 import com.picpay.finsys.core.gateway.AddressGateway;
 import com.picpay.finsys.core.gateway.CustomerGateway;
 import com.picpay.finsys.core.usecase.UpdateCustomerUseCase;
-import com.picpay.finsys.core.usecase.impl.common.ChangeCustomer;
+import com.picpay.finsys.core.usecase.impl.validation.CustomerAddressValidation;
+import com.picpay.finsys.core.usecase.impl.validation.CustomerAgeValidation;
+import com.picpay.finsys.core.usecase.impl.validation.CustomerExistenceValidation;
+import com.picpay.finsys.core.usecase.impl.validation.CustomerUpdateRequestValidation;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
 import org.springframework.stereotype.Service;
@@ -16,17 +19,20 @@ import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
-public class UpdateCustomerUseCaseImpl extends ChangeCustomer implements UpdateCustomerUseCase {
+public class UpdateCustomerUseCaseImpl implements UpdateCustomerUseCase {
     private final CustomerGateway customerGateway;
     private final AddressGateway addressGateway;
 
-    Integer majorityAge = 18;
+    private final CustomerAddressValidation customerAddressValidation;
+    private final CustomerAgeValidation customerAgeValidation;
+    private final CustomerUpdateRequestValidation customerUpdateRequestValidation;
+    private final CustomerExistenceValidation customerExistenceValidation;
 
     @Override
     public CustomerDomain execute(String id, CustomerDomain customer, String zipCode) throws BadRequestException {
-        verifyCustomer(id);
+        customerExistenceValidation.validate(id);
 
-        verifyRequest(customer, zipCode);
+        customerUpdateRequestValidation.validate(customer, zipCode);
 
         CustomerDomain dbCustomer = customerGateway.findById(id);
 
@@ -43,7 +49,7 @@ public class UpdateCustomerUseCaseImpl extends ChangeCustomer implements UpdateC
         }
 
         if(customer.getBirthDate() != null) {
-            super.verifyCustomerAge(
+            customerAgeValidation.validate(
                     customer.getBirthDate()
             );
             dbCustomer.setBirthDate(customer.getBirthDate());
@@ -52,7 +58,7 @@ public class UpdateCustomerUseCaseImpl extends ChangeCustomer implements UpdateC
         if (zipCode != null) {
             AddressDomain address = addressGateway.getAdressByZipCode(zipCode);
             System.out.println(address.getAddress());
-            super.verifyAddress(address, zipCode);
+            customerAddressValidation.validate(address, zipCode);
             dbCustomer.setAddress(address);
         }
 
@@ -92,25 +98,5 @@ public class UpdateCustomerUseCaseImpl extends ChangeCustomer implements UpdateC
                 .birthDate(birthDate)
                 .address(address)
                 .build();
-    }
-
-    private void verifyRequest(CustomerDomain request, String zipCode) throws BadRequestException {
-        if (
-                request.getName() == null
-                        && request.getDocument() == null
-                        && request.getEmail() == null
-                        && request.getBirthDate() == null
-                        && zipCode == null
-        ) {
-            throw new BadRequestException("at least 1 value must be requested");
-        }
-    }
-
-    private void verifyCustomer(String customerId) throws CustomerNotFoundException {
-        CustomerDomain customer = customerGateway.findById(customerId);
-
-        if(customer == null) {
-            throw new CustomerNotFoundException(customerId);
-        }
     }
 }

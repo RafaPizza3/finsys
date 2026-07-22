@@ -1,15 +1,13 @@
 package com.picpay.finsys.core.usecase.impl;
 
 import com.picpay.finsys.core.domain.ContractDomain;
-import com.picpay.finsys.core.domain.CustomerDomain;
 import com.picpay.finsys.core.domain.InstallmentDomain;
 import com.picpay.finsys.core.domain.enumeration.ContractStatus;
 import com.picpay.finsys.core.domain.enumeration.InstallmentStatus;
-import com.picpay.finsys.core.exception.CustomerNotFoundException;
 import com.picpay.finsys.core.gateway.ContractGateway;
-import com.picpay.finsys.core.gateway.CustomerGateway;
 import com.picpay.finsys.core.usecase.InsertContractUseCase;
-import com.picpay.finsys.core.usecase.impl.common.ChangeContract;
+import com.picpay.finsys.core.usecase.impl.validation.ContractRequestedAmountValidation;
+import com.picpay.finsys.core.usecase.impl.validation.CustomerExistenceValidation;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
 import org.springframework.stereotype.Service;
@@ -20,16 +18,17 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class InsertContractUseCaseImpl extends ChangeContract implements InsertContractUseCase {
+public class InsertContractUseCaseImpl implements InsertContractUseCase {
     private final ContractGateway contractGateway;
-    private final CustomerGateway customerGateway;
+
+    private final CustomerExistenceValidation customerExistenceValidation;
+    private final ContractRequestedAmountValidation contractRequestedAmountValidation;
 
     Double monthlyInterestRate = 4.0;
-    Integer minimumRequestedAmount = 1000;
 
     @Override
     public ContractDomain execute(ContractDomain contract) throws BadRequestException {
-        super.verifyCustomer(contract.getCustomerId(), customerGateway);
+        customerExistenceValidation.validate(contract.getCustomerId());
 
         String customerId = contract.getCustomerId();
         Double requestedAmount = contract.getRequestedAmount();
@@ -43,7 +42,7 @@ public class InsertContractUseCaseImpl extends ChangeContract implements InsertC
 
         List<InstallmentDomain> installments = createInstallments(period, installmentAmount);
 
-        verifyContractRequestedAmount(requestedAmount);
+        contractRequestedAmountValidation.validate(requestedAmount);
 
         ContractDomain domain = createObject(
                 customerId,
@@ -111,11 +110,5 @@ public class InsertContractUseCaseImpl extends ChangeContract implements InsertC
                 .status(status)
                 .installments(installments)
                 .build();
-    }
-
-    private void verifyContractRequestedAmount(Double requestedAmount) throws BadRequestException {
-        if (requestedAmount < this.minimumRequestedAmount) {
-            throw new BadRequestException("contract requested amount must be at least 1000");
-        }
     }
 }

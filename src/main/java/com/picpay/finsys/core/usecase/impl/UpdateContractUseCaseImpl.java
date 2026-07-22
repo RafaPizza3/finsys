@@ -1,16 +1,18 @@
 package com.picpay.finsys.core.usecase.impl;
 
 import com.picpay.finsys.core.domain.ContractDomain;
-import com.picpay.finsys.core.domain.CustomerDomain;
 import com.picpay.finsys.core.domain.InstallmentDomain;
 import com.picpay.finsys.core.domain.enumeration.ContractStatus;
 import com.picpay.finsys.core.domain.enumeration.InstallmentStatus;
 import com.picpay.finsys.core.exception.ContractNotFoundException;
-import com.picpay.finsys.core.exception.CustomerNotFoundException;
 import com.picpay.finsys.core.gateway.ContractGateway;
 import com.picpay.finsys.core.gateway.CustomerGateway;
 import com.picpay.finsys.core.usecase.UpdateContractUseCase;
-import com.picpay.finsys.core.usecase.impl.common.ChangeContract;
+import com.picpay.finsys.core.usecase.impl.validation.ContractNewRequestedAmountValidation;
+import com.picpay.finsys.core.usecase.impl.validation.ContractPeriodUpdateValidation;
+import com.picpay.finsys.core.usecase.impl.validation.ContractRequestedAmountValidation;
+import com.picpay.finsys.core.usecase.impl.validation.ContractUpdateRequestValidation;
+import com.picpay.finsys.core.usecase.impl.validation.CustomerExistenceValidation;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
 import org.springframework.stereotype.Service;
@@ -20,15 +22,20 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class UpdateContractUseCaseImpl extends ChangeContract implements UpdateContractUseCase {
+public class UpdateContractUseCaseImpl implements UpdateContractUseCase {
     private final ContractGateway contractGateway;
     private final CustomerGateway customerGateway;
+
+    private final CustomerExistenceValidation customerExistenceValidation;
+    private final ContractNewRequestedAmountValidation contractNewRequestedAmountValidation;
+    private final ContractUpdateRequestValidation contractUpdateRequestValidation;
+    private final ContractPeriodUpdateValidation contractPeriodUpdateValidation;
 
     Integer percentage = 100;
 
     @Override
     public ContractDomain execute(String id, ContractDomain contract) throws BadRequestException {
-        verifyRequest(contract);
+        contractUpdateRequestValidation.validate(contract);
 
         Double monthlyInterestRate = 4.0;
 
@@ -37,14 +44,13 @@ public class UpdateContractUseCaseImpl extends ChangeContract implements UpdateC
             throw new ContractNotFoundException(id);
         }
 
-        verifyRequestedAmount(contract.getRequestedAmount(), bdContract.getRequestedAmount());
-        verifyPeriod(contract.getPeriod(), bdContract.getPeriod());
+        contractPeriodUpdateValidation.validate(contract.getPeriod(), bdContract.getPeriod());
 
         Double value = 0.0;
         Integer period = 0;
 
         if (contract.getCustomerId() != null) {
-            super.verifyCustomer(contract.getId(), customerGateway);
+            customerExistenceValidation.validate(contract.getId());
             bdContract.setCustomerId(contract.getCustomerId());
         }
 
@@ -53,6 +59,7 @@ public class UpdateContractUseCaseImpl extends ChangeContract implements UpdateC
         }
 
         if (contract.getRequestedAmount() != null) {
+            contractNewRequestedAmountValidation.validate(contract.getRequestedAmount(), bdContract.getRequestedAmount());
             bdContract.setInstallments(
                     adjustInstallmentsByValue(
                             contract.getRequestedAmount(),
@@ -171,23 +178,5 @@ public class UpdateContractUseCaseImpl extends ChangeContract implements UpdateC
         Double newInstallmentAmount = calcNewInstallmentAmount(value, period, interestRate);
 
         return newInstallmentAmount * period;
-    }
-
-    private void verifyRequest(ContractDomain request) throws BadRequestException {
-        if (request.getCustomerId() == null && request.getRequestedAmount() == null && request.getPeriod() == null) {
-            throw new BadRequestException("at least 1 value must be requested");
-        }
-    }
-
-    private void verifyRequestedAmount(Double newRequestedAmount, Double originalRequestedAmount) throws BadRequestException {
-        if(newRequestedAmount <= originalRequestedAmount) {
-            throw new BadRequestException("new contract requested amount must be bigger than original requested amount");
-        }
-    }
-
-    private void verifyPeriod(Integer requestPeriod, Integer originalPeriod) throws BadRequestException {
-        if(requestPeriod < originalPeriod) {
-            throw new BadRequestException("new contract value must be bigger than or equals original value");
-        }
     }
 }

@@ -8,7 +8,8 @@ import com.picpay.finsys.core.exception.InvalidZipCodeException;
 import com.picpay.finsys.core.gateway.AddressGateway;
 import com.picpay.finsys.core.gateway.CustomerGateway;
 import com.picpay.finsys.core.usecase.InsertCustomerUseCase;
-import com.picpay.finsys.core.usecase.impl.common.ChangeCustomer;
+import com.picpay.finsys.core.usecase.impl.validation.CustomerAddressValidation;
+import com.picpay.finsys.core.usecase.impl.validation.CustomerAgeValidation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,11 +17,12 @@ import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
-public class InsertCustomerUseCaseImpl extends ChangeCustomer implements InsertCustomerUseCase {
+public class InsertCustomerUseCaseImpl implements InsertCustomerUseCase {
     private final CustomerGateway customerGateway;
     private final AddressGateway addressGateway;
 
-    Integer majorityAge = 18;
+    private final CustomerAddressValidation customerAddressValidation;
+    private final CustomerAgeValidation customerAgeValidation;
 
     @Override
     public CustomerDomain execute(CustomerDomain customer, String zipCode) throws CustomerTooYoungException, InvalidZipCodeException {
@@ -30,12 +32,12 @@ public class InsertCustomerUseCaseImpl extends ChangeCustomer implements InsertC
         LocalDateTime birthDate = customer.getBirthDate();
         AddressDomain address = addressGateway.getAdressByZipCode(zipCode);
 
-        super.verifyAddress(address, zipCode);
+        customerAddressValidation.validate(address, zipCode);
 
         LocalDateTime createdAt = LocalDateTime.now();
         CustomerStatus status = CustomerStatus.ACTIVE;
 
-        super.verifyCustomerAge(birthDate);
+        customerAgeValidation.validate(birthDate);
 
         CustomerDomain domain = createObject(name, document, createdAt, status, email, birthDate, address);
 
