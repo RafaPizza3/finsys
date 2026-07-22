@@ -1,7 +1,7 @@
 package com.picpay.finsys.dataprovider.adapter;
 
 import com.picpay.finsys.core.domain.AddressDomain;
-import com.picpay.finsys.core.exception.ContractNotFoundException;
+import com.picpay.finsys.core.exception.InvalidZipCodeException;
 import com.picpay.finsys.core.gateway.AddressGateway;
 import com.picpay.finsys.dataprovider.client.ViaCepClient;
 import com.picpay.finsys.dataprovider.client.response.ViaCepResponse;
@@ -20,14 +20,14 @@ public class ViaCepAdapter implements AddressGateway {
     private final AddressMapper mapper;
 
     @Override
-    @Retry(name = "viaCepRetry", fallbackMethod = "getAdressByZipCodeFallback")
+    @Retry(name = "viaCepRetry", fallbackMethod = "getAddressByZipCodeFallback")
     public AddressDomain getAdressByZipCode(String zipCode) {
         ViaCepResponse response = client.getClient(zipCode);
         return mapper.toDomain(response);
     }
 
-    public ViaCepResponse getAdressByZipCodeFallback(String zipCode, Throwable throwable) throws ContractNotFoundException {
+    public ViaCepResponse getAddressByZipCodeFallback(String zipCode, Throwable throwable) throws InvalidZipCodeException {
         log.error("Failed to get address by zip code: " + zipCode + " reason: " + throwable.getMessage());
-        throw new ContractNotFoundException(zipCode);
+        throw new InvalidZipCodeException(zipCode);
     }
 }

@@ -2,8 +2,8 @@ package com.picpay.finsys.core.usecase.impl;
 
 import com.picpay.finsys.core.domain.CustomerDomain;
 import com.picpay.finsys.core.domain.enumeration.ContractStatus;
+import com.picpay.finsys.core.exception.CustomerHasContractException;
 import com.picpay.finsys.core.exception.CustomerNotFoundException;
-import com.picpay.finsys.core.exception.ActiveContractException;
 import com.picpay.finsys.core.gateway.ContractGateway;
 import com.picpay.finsys.core.gateway.CustomerGateway;
 import com.picpay.finsys.core.usecase.DeleteCustomerUseCase;
@@ -17,7 +17,7 @@ public class DeleteCustomerUseCaseImpl implements DeleteCustomerUseCase {
     private final ContractGateway contractGateway;
 
     @Override
-    public void execute(String id) throws CustomerNotFoundException, ActiveContractException {
+    public void execute(String id) throws CustomerNotFoundException, CustomerHasContractException {
         verifyCustomerExistence(id);
         verifyContractsStatus(id);
         customerGateway.delete(id);
@@ -30,11 +30,11 @@ public class DeleteCustomerUseCaseImpl implements DeleteCustomerUseCase {
         }
     }
 
-    private void verifyContractsStatus(String id) throws ActiveContractException {
+    private void verifyContractsStatus(String id) throws CustomerHasContractException {
         Integer activeContractsAmount = contractGateway.countActiveContractsByCustomerId(id, ContractStatus.ACTIVE);
 
         if (activeContractsAmount > 0) {
-            throw new ActiveContractException("the customer must not have an active contracr");
+            throw new CustomerHasContractException();
         }
     }
 }

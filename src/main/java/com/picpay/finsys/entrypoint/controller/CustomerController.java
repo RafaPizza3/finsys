@@ -3,6 +3,7 @@ package com.picpay.finsys.entrypoint.controller;
 import com.picpay.finsys.core.domain.CustomerDomain;
 import com.picpay.finsys.core.domain.enumeration.CustomerStatus;
 import com.picpay.finsys.core.exception.ActiveContractException;
+import com.picpay.finsys.core.exception.CustomerHasContractException;
 import com.picpay.finsys.core.exception.CustomerNotFoundException;
 import com.picpay.finsys.core.exception.CustomerTooYoungException;
 import com.picpay.finsys.core.exception.InvalidZipCodeException;
@@ -99,7 +100,7 @@ public class CustomerController implements CustomerControllerDocs {
     @Override
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.CREATED)
-    public CustomerResponse update(@PathVariable String id, @RequestBody CustomerUpdateRequest request) throws BadRequestException, InvalidZipCodeException {
+    public CustomerResponse update(@PathVariable String id, @RequestBody CustomerUpdateRequest request) throws BadRequestException {
         CustomerDomain domain = customerMapper.toDomain(request);
         domain.setId(id);
         CustomerDomain responseDomain = updateCustomerUseCase.execute(id, domain, request.getZipCode());
@@ -109,7 +110,7 @@ public class CustomerController implements CustomerControllerDocs {
     @Override
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable String id) throws CustomerNotFoundException, ActiveContractException {
+    public void delete(@PathVariable String id) throws CustomerNotFoundException, CustomerHasContractException {
         deleteCustomerUseCase.execute(id);
     }
 }

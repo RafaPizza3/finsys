@@ -4,11 +4,10 @@ import com.picpay.finsys.core.domain.AddressDomain;
 import com.picpay.finsys.core.domain.CustomerDomain;
 import com.picpay.finsys.core.domain.enumeration.CustomerStatus;
 import com.picpay.finsys.core.exception.CustomerNotFoundException;
-import com.picpay.finsys.core.exception.CustomerTooYoungException;
-import com.picpay.finsys.core.exception.InvalidZipCodeException;
 import com.picpay.finsys.core.gateway.AddressGateway;
 import com.picpay.finsys.core.gateway.CustomerGateway;
 import com.picpay.finsys.core.usecase.UpdateCustomerUseCase;
+import com.picpay.finsys.core.usecase.impl.common.ChangeCustomer;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
 import org.springframework.stereotype.Service;
@@ -17,12 +16,14 @@ import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
-public class UpdateCustomerUseCaseImpl implements UpdateCustomerUseCase {
+public class UpdateCustomerUseCaseImpl extends ChangeCustomer implements UpdateCustomerUseCase {
     private final CustomerGateway customerGateway;
     private final AddressGateway addressGateway;
 
+    Integer majorityAge = 18;
+
     @Override
-    public CustomerDomain execute(String id, CustomerDomain customer, String zipCode) throws BadRequestException, InvalidZipCodeException {
+    public CustomerDomain execute(String id, CustomerDomain customer, String zipCode) throws BadRequestException {
         verifyCustomer(id);
 
         verifyRequest(customer, zipCode);
@@ -42,7 +43,7 @@ public class UpdateCustomerUseCaseImpl implements UpdateCustomerUseCase {
         }
 
         if(customer.getBirthDate() != null) {
-            verifyCustomerAge(
+            super.verifyCustomerAge(
                     customer.getBirthDate()
             );
             dbCustomer.setBirthDate(customer.getBirthDate());
@@ -51,7 +52,7 @@ public class UpdateCustomerUseCaseImpl implements UpdateCustomerUseCase {
         if (zipCode != null) {
             AddressDomain address = addressGateway.getAdressByZipCode(zipCode);
             System.out.println(address.getAddress());
-            verifyAddress(address, zipCode);
+            super.verifyAddress(address, zipCode);
             dbCustomer.setAddress(address);
         }
 
@@ -110,18 +111,6 @@ public class UpdateCustomerUseCaseImpl implements UpdateCustomerUseCase {
 
         if(customer == null) {
             throw new CustomerNotFoundException(customerId);
-        }
-    }
-
-    private void verifyCustomerAge(LocalDateTime birthDate) throws CustomerTooYoungException {
-        if (birthDate.plusYears(18).isAfter(LocalDateTime.now())) {
-            throw new CustomerTooYoungException();
-        }
-    }
-
-    private void verifyAddress(AddressDomain address, String zipCode) throws InvalidZipCodeException {
-        if (address.getAddress() == null) {
-            throw new InvalidZipCodeException(zipCode);
         }
     }
 }

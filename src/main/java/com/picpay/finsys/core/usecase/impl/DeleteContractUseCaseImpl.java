@@ -26,7 +26,7 @@ public class DeleteContractUseCaseImpl implements DeleteContractUseCase {
         }
 
         if(contract.getStatus() == ContractStatus.ACTIVE) {
-            throw new ActiveContractException("contract must not be active");
+            throw new ActiveContractException();
         }
     }
 }

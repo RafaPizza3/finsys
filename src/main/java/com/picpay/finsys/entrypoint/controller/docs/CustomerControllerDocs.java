@@ -2,6 +2,7 @@ package com.picpay.finsys.entrypoint.controller.docs;
 
 import com.picpay.finsys.core.domain.enumeration.CustomerStatus;
 import com.picpay.finsys.core.exception.ActiveContractException;
+import com.picpay.finsys.core.exception.CustomerHasContractException;
 import com.picpay.finsys.core.exception.CustomerNotFoundException;
 import com.picpay.finsys.core.exception.CustomerTooYoungException;
 import com.picpay.finsys.core.exception.InvalidZipCodeException;
@@ -109,5 +110,5 @@ public interface CustomerControllerDocs {
             )
     }
     )
-    void delete(String id) throws CustomerNotFoundException, ActiveContractException;
+    void delete(String id) throws CustomerNotFoundException, ActiveContractException, CustomerHasContractException;
 }

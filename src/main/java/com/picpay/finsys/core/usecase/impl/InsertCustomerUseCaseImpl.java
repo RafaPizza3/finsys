@@ -8,6 +8,7 @@ import com.picpay.finsys.core.exception.InvalidZipCodeException;
 import com.picpay.finsys.core.gateway.AddressGateway;
 import com.picpay.finsys.core.gateway.CustomerGateway;
 import com.picpay.finsys.core.usecase.InsertCustomerUseCase;
+import com.picpay.finsys.core.usecase.impl.common.ChangeCustomer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,9 +16,11 @@ import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
-public class InsertCustomerUseCaseImpl implements InsertCustomerUseCase {
+public class InsertCustomerUseCaseImpl extends ChangeCustomer implements InsertCustomerUseCase {
     private final CustomerGateway customerGateway;
     private final AddressGateway addressGateway;
+
+    Integer majorityAge = 18;
 
     @Override
     public CustomerDomain execute(CustomerDomain customer, String zipCode) throws CustomerTooYoungException, InvalidZipCodeException {
@@ -27,12 +30,12 @@ public class InsertCustomerUseCaseImpl implements InsertCustomerUseCase {
         LocalDateTime birthDate = customer.getBirthDate();
         AddressDomain address = addressGateway.getAdressByZipCode(zipCode);
 
-        verifyAddress(address, zipCode);
+        super.verifyAddress(address, zipCode);
 
         LocalDateTime createdAt = LocalDateTime.now();
         CustomerStatus status = CustomerStatus.ACTIVE;
 
-        verifyCustomerAge(birthDate);
+        super.verifyCustomerAge(birthDate);
 
         CustomerDomain domain = createObject(name, document, createdAt, status, email, birthDate, address);
 
@@ -57,17 +60,5 @@ public class InsertCustomerUseCaseImpl implements InsertCustomerUseCase {
                 .birthDate(birthDate)
                 .address(address)
                 .build();
-    }
-
-    private void verifyCustomerAge(LocalDateTime birthDate) throws CustomerTooYoungException {
-        if (birthDate.plusYears(18).isAfter(LocalDateTime.now())) {
-            throw new CustomerTooYoungException();
-        }
-    }
-
-    private void verifyAddress(AddressDomain address, String zipCode) throws InvalidZipCodeException {
-        if (address.getAddress() == null) {
-            throw new InvalidZipCodeException(zipCode);
-        }
     }
 }

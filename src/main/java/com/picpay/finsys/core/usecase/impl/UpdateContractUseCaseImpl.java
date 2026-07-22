@@ -10,6 +10,7 @@ import com.picpay.finsys.core.exception.CustomerNotFoundException;
 import com.picpay.finsys.core.gateway.ContractGateway;
 import com.picpay.finsys.core.gateway.CustomerGateway;
 import com.picpay.finsys.core.usecase.UpdateContractUseCase;
+import com.picpay.finsys.core.usecase.impl.common.ChangeContract;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
 import org.springframework.stereotype.Service;
@@ -19,9 +20,11 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class UpdateContractUseCaseImpl implements UpdateContractUseCase {
+public class UpdateContractUseCaseImpl extends ChangeContract implements UpdateContractUseCase {
     private final ContractGateway contractGateway;
     private final CustomerGateway customerGateway;
+
+    Integer percentage = 100;
 
     @Override
     public ContractDomain execute(String id, ContractDomain contract) throws BadRequestException {
@@ -41,7 +44,7 @@ public class UpdateContractUseCaseImpl implements UpdateContractUseCase {
         Integer period = 0;
 
         if (contract.getCustomerId() != null) {
-            verifyCustomer(contract.getId());
+            super.verifyCustomer(contract.getId(), customerGateway);
             bdContract.setCustomerId(contract.getCustomerId());
         }
 
@@ -120,8 +123,6 @@ public class UpdateContractUseCaseImpl implements UpdateContractUseCase {
     ) {
         Double newInstallmentValue = calcNewInstallmentAmount(value, period, monthlyInterestRate);
 
-        LocalDateTime now = LocalDateTime.now();
-
         String lastId = installments.getLast().getId();
         Double totalPaid = 0.0;
         Integer paidQtd = 0;
@@ -163,7 +164,7 @@ public class UpdateContractUseCaseImpl implements UpdateContractUseCase {
     }
 
     private Double calcNewInstallmentAmount(Double value, Integer period, Double interestRate) {
-        return (value / period) + (value * (interestRate / 100));
+        return (value / period) + (value * (interestRate / this.percentage));
     }
 
     private Double calcNewTotalAmount(Double value, Integer period, Double interestRate) {
@@ -187,14 +188,6 @@ public class UpdateContractUseCaseImpl implements UpdateContractUseCase {
     private void verifyPeriod(Integer requestPeriod, Integer originalPeriod) throws BadRequestException {
         if(requestPeriod < originalPeriod) {
             throw new BadRequestException("new contract value must be bigger than or equals original value");
-        }
-    }
-
-    private void verifyCustomer(String customerId) throws CustomerNotFoundException {
-        CustomerDomain customer = customerGateway.findById(customerId);
-
-        if(customer == null) {
-            throw new CustomerNotFoundException(customerId);
         }
     }
 }

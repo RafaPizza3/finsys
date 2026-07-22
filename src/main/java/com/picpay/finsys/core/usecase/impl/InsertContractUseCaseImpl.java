@@ -9,6 +9,7 @@ import com.picpay.finsys.core.exception.CustomerNotFoundException;
 import com.picpay.finsys.core.gateway.ContractGateway;
 import com.picpay.finsys.core.gateway.CustomerGateway;
 import com.picpay.finsys.core.usecase.InsertContractUseCase;
+import com.picpay.finsys.core.usecase.impl.common.ChangeContract;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
 import org.springframework.stereotype.Service;
@@ -19,21 +20,22 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class InsertContractUseCaseImpl implements InsertContractUseCase {
+public class InsertContractUseCaseImpl extends ChangeContract implements InsertContractUseCase {
     private final ContractGateway contractGateway;
     private final CustomerGateway customerGateway;
 
+    Double monthlyInterestRate = 4.0;
+    Integer minimumRequestedAmount = 1000;
+
     @Override
     public ContractDomain execute(ContractDomain contract) throws BadRequestException {
-        verifyCustomer(contract.getCustomerId());
-
-        Double monthlyInterestRate = 4.0;
+        super.verifyCustomer(contract.getCustomerId(), customerGateway);
 
         String customerId = contract.getCustomerId();
         Double requestedAmount = contract.getRequestedAmount();
         Integer period = contract.getPeriod();
 
-        Double installmentAmount = calcInstallmentAmount(requestedAmount, period, monthlyInterestRate);
+        Double installmentAmount = calcInstallmentAmount(requestedAmount, period, this.monthlyInterestRate);
         Double totalAmount = installmentAmount * period;
         LocalDateTime startDate = LocalDateTime.now();
         LocalDateTime endDate = startDate.plusMonths(period);
@@ -47,7 +49,7 @@ public class InsertContractUseCaseImpl implements InsertContractUseCase {
                 customerId,
                 requestedAmount,
                 totalAmount,
-                monthlyInterestRate,
+                this.monthlyInterestRate,
                 period,
                 installmentAmount,
                 startDate,
@@ -60,10 +62,9 @@ public class InsertContractUseCaseImpl implements InsertContractUseCase {
     }
 
     private Double calcInstallmentAmount(Double requestedAmount, Integer period, Double interestRate) {
-        Double incValue = requestedAmount * interestRate / 100;
-        Double installmentAmount = (requestedAmount / period) + incValue;
+        double incValue = requestedAmount * interestRate / 100;
 
-        return installmentAmount;
+        return (requestedAmount / period) + incValue;
     }
 
     private List<InstallmentDomain> createInstallments(
@@ -112,16 +113,8 @@ public class InsertContractUseCaseImpl implements InsertContractUseCase {
                 .build();
     }
 
-    private void verifyCustomer(String customerId) throws CustomerNotFoundException {
-        CustomerDomain customer = customerGateway.findById(customerId);
-
-        if(customer == null) {
-            throw new CustomerNotFoundException(customerId);
-        }
-    }
-
     private void verifyContractRequestedAmount(Double requestedAmount) throws BadRequestException {
-        if (requestedAmount < 1000) {
+        if (requestedAmount < this.minimumRequestedAmount) {
             throw new BadRequestException("contract requested amount must be at least 1000");
         }
     }
