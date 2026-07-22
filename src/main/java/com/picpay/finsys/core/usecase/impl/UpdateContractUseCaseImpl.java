@@ -1,15 +1,18 @@
 package com.picpay.finsys.core.usecase.impl;
 
 import com.picpay.finsys.core.domain.ContractDomain;
-import com.picpay.finsys.core.domain.CustomerDomain;
 import com.picpay.finsys.core.domain.InstallmentDomain;
 import com.picpay.finsys.core.domain.enumeration.ContractStatus;
 import com.picpay.finsys.core.domain.enumeration.InstallmentStatus;
 import com.picpay.finsys.core.exception.ContractNotFoundException;
-import com.picpay.finsys.core.exception.CustomerNotFoundException;
 import com.picpay.finsys.core.gateway.ContractGateway;
 import com.picpay.finsys.core.gateway.CustomerGateway;
 import com.picpay.finsys.core.usecase.UpdateContractUseCase;
+import com.picpay.finsys.core.usecase.impl.validation.ContractNewRequestedAmountValidation;
+import com.picpay.finsys.core.usecase.impl.validation.ContractPeriodUpdateValidation;
+import com.picpay.finsys.core.usecase.impl.validation.ContractRequestedAmountValidation;
+import com.picpay.finsys.core.usecase.impl.validation.ContractUpdateRequestValidation;
+import com.picpay.finsys.core.usecase.impl.validation.CustomerExistenceValidation;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
 import org.springframework.stereotype.Service;
@@ -23,25 +26,31 @@ public class UpdateContractUseCaseImpl implements UpdateContractUseCase {
     private final ContractGateway contractGateway;
     private final CustomerGateway customerGateway;
 
+    private final CustomerExistenceValidation customerExistenceValidation;
+    private final ContractNewRequestedAmountValidation contractNewRequestedAmountValidation;
+    private final ContractUpdateRequestValidation contractUpdateRequestValidation;
+    private final ContractPeriodUpdateValidation contractPeriodUpdateValidation;
+
+    Integer percentage = 100;
+
     @Override
     public ContractDomain execute(String id, ContractDomain contract) throws BadRequestException {
-        verifyRequest(contract);
+        contractUpdateRequestValidation.validate(contract);
 
-        Double interestRate = 4.0;
+        Double monthlyInterestRate = 4.0;
 
         ContractDomain bdContract = contractGateway.findById(id);
         if (bdContract == null) {
             throw new ContractNotFoundException(id);
         }
 
-        verifyValue(contract.getValue(), bdContract.getValue());
-        verifyPeriod(contract.getPeriod(), bdContract.getPeriod());
+        contractPeriodUpdateValidation.validate(contract.getPeriod(), bdContract.getPeriod());
 
         Double value = 0.0;
         Integer period = 0;
 
         if (contract.getCustomerId() != null) {
-            verifyCustomer(contract.getId());
+            customerExistenceValidation.validate(contract.getId());
             bdContract.setCustomerId(contract.getCustomerId());
         }
 
@@ -49,19 +58,20 @@ public class UpdateContractUseCaseImpl implements UpdateContractUseCase {
             bdContract.setPeriod(contract.getPeriod());
         }
 
-        if (contract.getValue() != null) {
+        if (contract.getRequestedAmount() != null) {
+            contractNewRequestedAmountValidation.validate(contract.getRequestedAmount(), bdContract.getRequestedAmount());
             bdContract.setInstallments(
                     adjustInstallmentsByValue(
-                            contract.getValue(),
+                            contract.getRequestedAmount(),
                             bdContract.getPeriod(),
-                            interestRate,
+                            monthlyInterestRate,
                             bdContract.getInstallments()
                     )
             );
 
-            bdContract.setValue(contract.getValue());
-            bdContract.setTotalAmount(calcNewTotalAmount(contract.getValue(), bdContract.getPeriod(), interestRate));
-            bdContract.setInstallmentAmount(calcNewInstallmentAmount(contract.getValue(), bdContract.getPeriod(), interestRate));
+            bdContract.setRequestedAmount(contract.getRequestedAmount());
+            bdContract.setTotalAmount(calcNewTotalAmount(contract.getRequestedAmount(), bdContract.getPeriod(), monthlyInterestRate));
+            bdContract.setInstallmentAmount(calcNewInstallmentAmount(contract.getRequestedAmount(), bdContract.getPeriod(), monthlyInterestRate));
             bdContract.setEndDate(
                     bdContract.getInstallments().getLast().getDueDate()
             );
@@ -70,9 +80,9 @@ public class UpdateContractUseCaseImpl implements UpdateContractUseCase {
         ContractDomain domain = createObject(
                 bdContract.getId(),
                 bdContract.getCustomerId(),
-                bdContract.getValue(),
+                bdContract.getRequestedAmount(),
                 bdContract.getTotalAmount(),
-                interestRate,
+                monthlyInterestRate,
                 bdContract.getPeriod(),
                 bdContract.getInstallmentAmount(),
                 bdContract.getStartDate(),
@@ -87,9 +97,9 @@ public class UpdateContractUseCaseImpl implements UpdateContractUseCase {
     private ContractDomain createObject(
             String id,
             String customerId,
-            Double value,
+            Double requestedAmount,
             Double totalAmount,
-            Double interestRate,
+            Double monthlyInterestRate,
             Integer period,
             Double installmentAmount,
             LocalDateTime startDate,
@@ -100,9 +110,9 @@ public class UpdateContractUseCaseImpl implements UpdateContractUseCase {
         return ContractDomain.builder()
                 .id(id)
                 .customerId(customerId)
-                .value(value)
+                .requestedAmount(requestedAmount)
                 .totalAmount(totalAmount)
-                .interestRate(interestRate)
+                .monthlyInterestRate(monthlyInterestRate)
                 .period(period)
                 .installmentAmount(installmentAmount)
                 .startDate(startDate)
@@ -115,12 +125,10 @@ public class UpdateContractUseCaseImpl implements UpdateContractUseCase {
     private List<InstallmentDomain> adjustInstallmentsByValue(
             Double value,
             Integer period,
-            Double interestRate,
+            Double monthlyInterestRate,
             List<InstallmentDomain> installments
     ) {
-        Double newInstallmentValue = calcNewInstallmentAmount(value, period, interestRate);
-
-        LocalDateTime now = LocalDateTime.now();
+        Double newInstallmentValue = calcNewInstallmentAmount(value, period, monthlyInterestRate);
 
         String lastId = installments.getLast().getId();
         Double totalPaid = 0.0;
@@ -163,38 +171,12 @@ public class UpdateContractUseCaseImpl implements UpdateContractUseCase {
     }
 
     private Double calcNewInstallmentAmount(Double value, Integer period, Double interestRate) {
-        return (value / period) + (value * (interestRate / 100));
+        return (value / period) + (value * (interestRate / this.percentage));
     }
 
     private Double calcNewTotalAmount(Double value, Integer period, Double interestRate) {
         Double newInstallmentAmount = calcNewInstallmentAmount(value, period, interestRate);
 
         return newInstallmentAmount * period;
-    }
-
-    private void verifyRequest(ContractDomain request) throws BadRequestException {
-        if (request.getCustomerId() == null && request.getValue() == null && request.getPeriod() == null) {
-            throw new BadRequestException("at least 1 value must be requested");
-        }
-    }
-
-    private void verifyValue(Double requestValue, Double originalValue) throws BadRequestException {
-        if(requestValue <= originalValue) {
-            throw new BadRequestException("new contract value must be bigger than original value");
-        }
-    }
-
-    private void verifyPeriod(Integer requestPeriod, Integer originalPeriod) throws BadRequestException {
-        if(requestPeriod < originalPeriod) {
-            throw new BadRequestException("new contract value must be bigger than or equals original value");
-        }
-    }
-
-    private void verifyCustomer(String customerId) throws CustomerNotFoundException {
-        CustomerDomain customer = customerGateway.findById(customerId);
-
-        if(customer == null) {
-            throw new CustomerNotFoundException(customerId);
-        }
     }
 }

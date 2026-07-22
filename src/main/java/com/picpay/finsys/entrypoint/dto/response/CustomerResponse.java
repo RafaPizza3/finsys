@@ -15,4 +15,5 @@ public class CustomerResponse {
     private LocalDateTime createdAt;
     private CustomerStatus status;
     private String email;
+    private AddressResponse address;
 }

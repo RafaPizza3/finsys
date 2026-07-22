@@ -10,4 +10,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ContractRepository extends MongoRepository<ContractEntity, String> {
     Page<ContractEntity> findAllByStatus(ContractStatus status, Pageable page);
+    Integer countContractEntitiesByCustomerIdAndStatus(String customerId, ContractStatus status);
 }

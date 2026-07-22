@@ -2,7 +2,11 @@ package com.picpay.finsys.entrypoint.controller;
 
 import com.picpay.finsys.core.domain.CustomerDomain;
 import com.picpay.finsys.core.domain.enumeration.CustomerStatus;
+import com.picpay.finsys.core.exception.ActiveContractException;
+import com.picpay.finsys.core.exception.CustomerHasContractException;
 import com.picpay.finsys.core.exception.CustomerNotFoundException;
+import com.picpay.finsys.core.exception.CustomerTooYoungException;
+import com.picpay.finsys.core.exception.InvalidZipCodeException;
 import com.picpay.finsys.core.usecase.FindCustomerByStatusUseCase;
 import com.picpay.finsys.core.usecase.FindAllCustomerUseCase;
 import com.picpay.finsys.core.usecase.FindCustomerByIdUseCase;
@@ -87,9 +91,9 @@ public class CustomerController implements CustomerControllerDocs {
     @Override
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public CustomerResponse insert(@RequestBody @Valid CustomerRequest customer) {
+    public CustomerResponse insert(@RequestBody @Valid CustomerRequest customer) throws CustomerTooYoungException, InvalidZipCodeException {
         CustomerDomain requestDomain = customerMapper.toDomain(customer);
-        CustomerDomain responseDomain = insertCustomerUseCase.execute(requestDomain);
+        CustomerDomain responseDomain = insertCustomerUseCase.execute(requestDomain, customer.getZipCode());
         return customerMapper.toResponse(responseDomain);
     }
 
@@ -99,14 +103,14 @@ public class CustomerController implements CustomerControllerDocs {
     public CustomerResponse update(@PathVariable String id, @RequestBody CustomerUpdateRequest request) throws BadRequestException {
         CustomerDomain domain = customerMapper.toDomain(request);
         domain.setId(id);
-        CustomerDomain responseDomain = updateCustomerUseCase.execute(id, domain);
+        CustomerDomain responseDomain = updateCustomerUseCase.execute(id, domain, request.getZipCode());
         return customerMapper.toResponse(responseDomain);
     }
 
     @Override
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable String id) throws CustomerNotFoundException {
+    public void delete(@PathVariable String id) throws CustomerNotFoundException, CustomerHasContractException {
         deleteCustomerUseCase.execute(id);
     }
 }

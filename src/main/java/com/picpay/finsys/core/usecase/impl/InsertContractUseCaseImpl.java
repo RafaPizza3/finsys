@@ -1,15 +1,15 @@
 package com.picpay.finsys.core.usecase.impl;
 
 import com.picpay.finsys.core.domain.ContractDomain;
-import com.picpay.finsys.core.domain.CustomerDomain;
 import com.picpay.finsys.core.domain.InstallmentDomain;
 import com.picpay.finsys.core.domain.enumeration.ContractStatus;
 import com.picpay.finsys.core.domain.enumeration.InstallmentStatus;
-import com.picpay.finsys.core.exception.CustomerNotFoundException;
 import com.picpay.finsys.core.gateway.ContractGateway;
-import com.picpay.finsys.core.gateway.CustomerGateway;
 import com.picpay.finsys.core.usecase.InsertContractUseCase;
+import com.picpay.finsys.core.usecase.impl.validation.ContractRequestedAmountValidation;
+import com.picpay.finsys.core.usecase.impl.validation.CustomerExistenceValidation;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.BadRequestException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -20,19 +20,21 @@ import java.util.List;
 @RequiredArgsConstructor
 public class InsertContractUseCaseImpl implements InsertContractUseCase {
     private final ContractGateway contractGateway;
-    private final CustomerGateway customerGateway;
+
+    private final CustomerExistenceValidation customerExistenceValidation;
+    private final ContractRequestedAmountValidation contractRequestedAmountValidation;
+
+    Double monthlyInterestRate = 4.0;
 
     @Override
-    public ContractDomain execute(ContractDomain contract) throws CustomerNotFoundException {
-        verifyCustomer(contract.getCustomerId());
-
-        Double interestRate = 4.0;
+    public ContractDomain execute(ContractDomain contract) throws BadRequestException {
+        customerExistenceValidation.validate(contract.getCustomerId());
 
         String customerId = contract.getCustomerId();
-        Double value = contract.getValue();
+        Double requestedAmount = contract.getRequestedAmount();
         Integer period = contract.getPeriod();
 
-        Double installmentAmount = calcInstallmentAmount(value, period, interestRate);
+        Double installmentAmount = calcInstallmentAmount(requestedAmount, period, this.monthlyInterestRate);
         Double totalAmount = installmentAmount * period;
         LocalDateTime startDate = LocalDateTime.now();
         LocalDateTime endDate = startDate.plusMonths(period);
@@ -40,11 +42,13 @@ public class InsertContractUseCaseImpl implements InsertContractUseCase {
 
         List<InstallmentDomain> installments = createInstallments(period, installmentAmount);
 
+        contractRequestedAmountValidation.validate(requestedAmount);
+
         ContractDomain domain = createObject(
                 customerId,
-                value,
+                requestedAmount,
                 totalAmount,
-                interestRate,
+                this.monthlyInterestRate,
                 period,
                 installmentAmount,
                 startDate,
@@ -56,11 +60,10 @@ public class InsertContractUseCaseImpl implements InsertContractUseCase {
         return contractGateway.insert(domain);
     }
 
-    private Double calcInstallmentAmount(Double value, Integer period, Double interestRate) {
-        Double incValue = value * interestRate / 100;
-        Double installmentAmount = (value / period) + incValue;
+    private Double calcInstallmentAmount(Double requestedAmount, Integer period, Double interestRate) {
+        double incValue = requestedAmount * interestRate / 100;
 
-        return installmentAmount;
+        return (requestedAmount / period) + incValue;
     }
 
     private List<InstallmentDomain> createInstallments(
@@ -85,9 +88,9 @@ public class InsertContractUseCaseImpl implements InsertContractUseCase {
 
     private ContractDomain createObject(
             String customerId,
-            Double value,
+            Double requestedAmount,
             Double totalAmount,
-            Double interestRate,
+            Double monthlyInterestRate,
             Integer period,
             Double installmentAmount,
             LocalDateTime startDate,
@@ -97,9 +100,9 @@ public class InsertContractUseCaseImpl implements InsertContractUseCase {
     ) {
         return ContractDomain.builder()
                 .customerId(customerId)
-                .value(value)
+                .requestedAmount(requestedAmount)
                 .totalAmount(totalAmount)
-                .interestRate(interestRate)
+                .monthlyInterestRate(monthlyInterestRate)
                 .period(period)
                 .installmentAmount(installmentAmount)
                 .startDate(startDate)
@@ -107,13 +110,5 @@ public class InsertContractUseCaseImpl implements InsertContractUseCase {
                 .status(status)
                 .installments(installments)
                 .build();
-    }
-
-    private void verifyCustomer(String customerId) throws CustomerNotFoundException {
-        CustomerDomain customer = customerGateway.findById(customerId);
-
-        if(customer == null) {
-            throw new CustomerNotFoundException(customerId);
-        }
     }
 }
