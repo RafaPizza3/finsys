@@ -24,13 +24,6 @@ spring:
         insertContractEvent-in-0:
           destination: finsys-insert-contract
           group: finsys-events-group
-#      binders:
-#        finsys:
-#          type: kafka
-#          environment:
-#            spring.cloud.stream.kafka:
-#              binder:
-#                brokers: localhost:9092
   data:
     mongodb:
       uri: ${MONGO_URI}
