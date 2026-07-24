@@ -8,6 +8,7 @@ import com.picpay.finsys.dataprovider.client.response.ViaCepResponse;
 import com.picpay.finsys.dataprovider.mapper.AddressMapper;
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -26,7 +27,8 @@ public class ViaCepAdapter implements AddressGateway {
         return mapper.toDomain(response);
     }
 
-    public ViaCepResponse getAddressByZipCodeFallback(String zipCode, Throwable throwable) throws InvalidZipCodeException {
+    @SneakyThrows
+    public ViaCepResponse getAddressByZipCodeFallback(String zipCode, Throwable throwable) {
         log.error("Failed to get address by zip code: " + zipCode + " reason: " + throwable.getMessage());
         throw new InvalidZipCodeException(zipCode);
     }

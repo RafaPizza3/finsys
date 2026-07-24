@@ -13,6 +13,54 @@ services:
       pc-environment-network:
         aliases:
           - mongo.picpay.cpxp
+  zookeeper:
+    image: zookeeper
+    container_name: zookeeper-local
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    ports:
+      - "2181:2181"
+    networks:
+      - pc-environment-network
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka-local
+    restart: always
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper-local:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-local:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_CONFLUENT_LICENSE_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_CONFLUENT_BALANCER_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_JMX_PORT: 9101
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+      CONFLUENT_METRICS_ENABLE: 'false'
+    depends_on:
+      - zookeeper
+    networks:
+      - pc-environment-network
+  kafka-ui:
+      image: provectuslabs/kafka-ui:latest
+      container_name: kafka-ui-local
+      ports:
+        - "9090:8080"
+      restart: always
+      environment:
+        - KAFKA_CLUSTERS_0_NAME=local
+        - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka-local:29092
+        - KAFKA_CLUSTERS_0_ZOOKEEPER=zookeeper-local:2181
+      depends_on:
+        - kafka
+      networks:
+        - pc-environment-network
 networks:
   pc-environment-network:
     external: false

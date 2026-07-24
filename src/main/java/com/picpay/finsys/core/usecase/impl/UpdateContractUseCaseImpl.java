@@ -6,15 +6,13 @@ import com.picpay.finsys.core.domain.enumeration.ContractStatus;
 import com.picpay.finsys.core.domain.enumeration.InstallmentStatus;
 import com.picpay.finsys.core.exception.ContractNotFoundException;
 import com.picpay.finsys.core.gateway.ContractGateway;
-import com.picpay.finsys.core.gateway.CustomerGateway;
 import com.picpay.finsys.core.usecase.UpdateContractUseCase;
 import com.picpay.finsys.core.usecase.impl.validation.ContractNewRequestedAmountValidation;
 import com.picpay.finsys.core.usecase.impl.validation.ContractPeriodUpdateValidation;
-import com.picpay.finsys.core.usecase.impl.validation.ContractRequestedAmountValidation;
 import com.picpay.finsys.core.usecase.impl.validation.ContractUpdateRequestValidation;
 import com.picpay.finsys.core.usecase.impl.validation.CustomerExistenceValidation;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.BadRequestException;
+import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -24,7 +22,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UpdateContractUseCaseImpl implements UpdateContractUseCase {
     private final ContractGateway contractGateway;
-    private final CustomerGateway customerGateway;
 
     private final CustomerExistenceValidation customerExistenceValidation;
     private final ContractNewRequestedAmountValidation contractNewRequestedAmountValidation;
@@ -34,7 +31,8 @@ public class UpdateContractUseCaseImpl implements UpdateContractUseCase {
     Integer percentage = 100;
 
     @Override
-    public ContractDomain execute(String id, ContractDomain contract) throws BadRequestException {
+    @SneakyThrows
+    public ContractDomain execute(String id, ContractDomain contract) {
         contractUpdateRequestValidation.validate(contract);
 
         Double monthlyInterestRate = 4.0;

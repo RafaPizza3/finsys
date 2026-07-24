@@ -1,12 +1,15 @@
 package com.picpay.finsys.core.usecase.impl.validation;
 
 import com.picpay.finsys.core.domain.CustomerDomain;
+import lombok.SneakyThrows;
 import org.apache.coyote.BadRequestException;
 import org.springframework.stereotype.Component;
 
 @Component
 public class CustomerUpdateRequestValidation {
-    public void validate(CustomerDomain request, String zipCode) throws BadRequestException {
+
+    @SneakyThrows
+    public void validate(CustomerDomain request, String zipCode) {
         if (
                 request.getName() == null
                         && request.getDocument() == null

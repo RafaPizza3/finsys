@@ -1,11 +1,6 @@
 package com.picpay.finsys.entrypoint.controller.docs;
 
 import com.picpay.finsys.core.domain.enumeration.CustomerStatus;
-import com.picpay.finsys.core.exception.ActiveContractException;
-import com.picpay.finsys.core.exception.CustomerHasContractException;
-import com.picpay.finsys.core.exception.CustomerNotFoundException;
-import com.picpay.finsys.core.exception.CustomerTooYoungException;
-import com.picpay.finsys.core.exception.InvalidZipCodeException;
 import com.picpay.finsys.entrypoint.dto.request.CustomerRequest;
 import com.picpay.finsys.entrypoint.dto.request.CustomerUpdateRequest;
 import com.picpay.finsys.entrypoint.dto.response.CustomerResponse;
@@ -13,7 +8,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.apache.coyote.BadRequestException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -60,7 +54,7 @@ public interface CustomerControllerDocs {
             )
     }
     )
-    CustomerResponse findById(String id) throws CustomerNotFoundException;
+    CustomerResponse findById(String id);
 
     @Operation(
             summary = "Inserts a customer",
@@ -77,7 +71,7 @@ public interface CustomerControllerDocs {
             )
     }
     )
-    CustomerResponse insert(CustomerRequest request) throws CustomerTooYoungException, InvalidZipCodeException;
+    CustomerResponse insert(CustomerRequest request);
 
     @Operation(
             summary = "Updates a customer",
@@ -94,7 +88,7 @@ public interface CustomerControllerDocs {
             )
     }
     )
-    CustomerResponse update(String id, CustomerUpdateRequest request) throws BadRequestException, InvalidZipCodeException;
+    CustomerResponse update(String id, CustomerUpdateRequest request);
 
     @Operation(
             summary = "Deletes a customer"
@@ -110,5 +104,5 @@ public interface CustomerControllerDocs {
             )
     }
     )
-    void delete(String id) throws CustomerNotFoundException, ActiveContractException, CustomerHasContractException;
+    void delete(String id);
 }

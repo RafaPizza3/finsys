@@ -9,7 +9,7 @@ import com.picpay.finsys.core.usecase.InsertContractUseCase;
 import com.picpay.finsys.core.usecase.impl.validation.ContractRequestedAmountValidation;
 import com.picpay.finsys.core.usecase.impl.validation.CustomerExistenceValidation;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.BadRequestException;
+import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -27,7 +27,8 @@ public class InsertContractUseCaseImpl implements InsertContractUseCase {
     Double monthlyInterestRate = 4.0;
 
     @Override
-    public ContractDomain execute(ContractDomain contract) throws BadRequestException {
+    @SneakyThrows
+    public ContractDomain execute(ContractDomain contract) {
         customerExistenceValidation.validate(contract.getCustomerId());
 
         String customerId = contract.getCustomerId();

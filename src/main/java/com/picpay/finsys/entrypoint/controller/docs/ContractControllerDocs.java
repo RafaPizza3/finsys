@@ -1,9 +1,6 @@
 package com.picpay.finsys.entrypoint.controller.docs;
 
 import com.picpay.finsys.core.domain.enumeration.ContractStatus;
-import com.picpay.finsys.core.exception.ActiveContractException;
-import com.picpay.finsys.core.exception.ContractNotFoundException;
-import com.picpay.finsys.core.exception.CustomerNotFoundException;
 import com.picpay.finsys.entrypoint.dto.request.ContractRequest;
 import com.picpay.finsys.entrypoint.dto.request.ContractUpdateRequest;
 import com.picpay.finsys.entrypoint.dto.response.ContractResponse;
@@ -11,7 +8,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.apache.coyote.BadRequestException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -58,7 +54,7 @@ public interface ContractControllerDocs {
             )
         }
     )
-    ContractResponse findById(String id) throws ContractNotFoundException;
+    ContractResponse findById(String id);
 
     @Operation(
             summary = "Inserts a contract",
@@ -75,7 +71,7 @@ public interface ContractControllerDocs {
             )
         }
     )
-    ContractResponse insert(ContractRequest request) throws BadRequestException;
+    ContractResponse insert(ContractRequest request);
 
     @Operation(
             summary = "Updates a contract",
@@ -92,7 +88,7 @@ public interface ContractControllerDocs {
             )
     }
     )
-    ContractResponse update(String id, ContractUpdateRequest request) throws BadRequestException;
+    ContractResponse update(String id, ContractUpdateRequest request);
 
     @Operation(
             summary = "Deletes a contract"
@@ -108,5 +104,5 @@ public interface ContractControllerDocs {
             )
         }
     )
-    void delete(String id) throws ContractNotFoundException, ActiveContractException;
+    void delete(String id);
 }

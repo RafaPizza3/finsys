@@ -1,9 +1,7 @@
 package com.picpay.finsys.core.usecase;
 
 import com.picpay.finsys.core.domain.CustomerDomain;
-import com.picpay.finsys.core.exception.CustomerTooYoungException;
-import com.picpay.finsys.core.exception.InvalidZipCodeException;
 
 public interface InsertCustomerUseCase {
-    CustomerDomain execute(CustomerDomain customer, String zipCode) throws CustomerTooYoungException, InvalidZipCodeException;
+    CustomerDomain execute(CustomerDomain customer, String zipCode);
 }
