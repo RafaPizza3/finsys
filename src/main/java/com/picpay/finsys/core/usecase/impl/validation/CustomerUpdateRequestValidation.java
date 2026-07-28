@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class CustomerUpdateRequestValidation {
+
     public void validate(CustomerDomain request, String zipCode) throws BadRequestException {
         if (
                 request.getName() == null

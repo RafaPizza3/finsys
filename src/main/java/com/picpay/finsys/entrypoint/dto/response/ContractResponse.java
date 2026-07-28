@@ -15,7 +15,7 @@ public class ContractResponse {
     private String customerId;
     private Double requestedAmount;
     private Double totalAmount;
-    private Double interestRate;
+    private Double monthlyInterestRate;
     private Integer period;
     private Double installmentAmount;
     private LocalDateTime startDate;

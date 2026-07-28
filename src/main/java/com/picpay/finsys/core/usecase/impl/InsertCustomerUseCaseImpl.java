@@ -25,7 +25,7 @@ public class InsertCustomerUseCaseImpl implements InsertCustomerUseCase {
     private final CustomerAgeValidation customerAgeValidation;
 
     @Override
-    public CustomerDomain execute(CustomerDomain customer, String zipCode) throws CustomerTooYoungException, InvalidZipCodeException {
+    public CustomerDomain execute(CustomerDomain customer, String zipCode) throws InvalidZipCodeException, CustomerTooYoungException {
         String name = customer.getName();
         String document = customer.getDocument();
         String email = customer.getEmail();

@@ -1,6 +1,5 @@
 package com.picpay.finsys.core.usecase;
 
-import com.picpay.finsys.core.exception.ActiveContractException;
 import com.picpay.finsys.core.exception.CustomerHasContractException;
 import com.picpay.finsys.core.exception.CustomerNotFoundException;
 

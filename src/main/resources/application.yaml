@@ -16,6 +16,14 @@ spring:
            ViaCepClient:
              connect-timeout: ${VIA_CEP_CONNECT_TIMEOUT}
              read-timeout: ${VIA_CEP_READ_TIMEOUT}
+    function:
+      definition:
+        insertContractEvent
+    stream:
+      bindings:
+        insertContractEvent-in-0:
+          destination: finsys-insert-contract
+          group: finsys-events-group
   data:
     mongodb:
       uri: ${MONGO_URI}

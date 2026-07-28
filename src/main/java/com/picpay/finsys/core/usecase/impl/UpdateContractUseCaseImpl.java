@@ -6,11 +6,10 @@ import com.picpay.finsys.core.domain.enumeration.ContractStatus;
 import com.picpay.finsys.core.domain.enumeration.InstallmentStatus;
 import com.picpay.finsys.core.exception.ContractNotFoundException;
 import com.picpay.finsys.core.gateway.ContractGateway;
-import com.picpay.finsys.core.gateway.CustomerGateway;
 import com.picpay.finsys.core.usecase.UpdateContractUseCase;
+import com.picpay.finsys.core.usecase.impl.validation.ContractExistenceValidation;
 import com.picpay.finsys.core.usecase.impl.validation.ContractNewRequestedAmountValidation;
 import com.picpay.finsys.core.usecase.impl.validation.ContractPeriodUpdateValidation;
-import com.picpay.finsys.core.usecase.impl.validation.ContractRequestedAmountValidation;
 import com.picpay.finsys.core.usecase.impl.validation.ContractUpdateRequestValidation;
 import com.picpay.finsys.core.usecase.impl.validation.CustomerExistenceValidation;
 import lombok.RequiredArgsConstructor;
@@ -24,8 +23,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UpdateContractUseCaseImpl implements UpdateContractUseCase {
     private final ContractGateway contractGateway;
-    private final CustomerGateway customerGateway;
 
+    private final ContractExistenceValidation contractExistenceValidation;
     private final CustomerExistenceValidation customerExistenceValidation;
     private final ContractNewRequestedAmountValidation contractNewRequestedAmountValidation;
     private final ContractUpdateRequestValidation contractUpdateRequestValidation;
@@ -40,9 +39,7 @@ public class UpdateContractUseCaseImpl implements UpdateContractUseCase {
         Double monthlyInterestRate = 4.0;
 
         ContractDomain bdContract = contractGateway.findById(id);
-        if (bdContract == null) {
-            throw new ContractNotFoundException(id);
-        }
+        contractExistenceValidation.validate(id);
 
         contractPeriodUpdateValidation.validate(contract.getPeriod(), bdContract.getPeriod());
 

@@ -1,9 +1,8 @@
-package com.picpay.finsys.entrypoint.controller.docs;
+package com.picpay.finsys.entrypoint.controller.api;
 
 import com.picpay.finsys.core.domain.enumeration.ContractStatus;
 import com.picpay.finsys.core.exception.ActiveContractException;
 import com.picpay.finsys.core.exception.ContractNotFoundException;
-import com.picpay.finsys.core.exception.CustomerNotFoundException;
 import com.picpay.finsys.entrypoint.dto.request.ContractRequest;
 import com.picpay.finsys.entrypoint.dto.request.ContractUpdateRequest;
 import com.picpay.finsys.entrypoint.dto.response.ContractResponse;
@@ -16,7 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 @Tag(name = "Contracts", description = "API for contracts management")
-public interface ContractControllerDocs {
+public interface ContractControllerAPI {
     @Operation(
             summary = "Gets all contracts with that status",
             description = "Returns a Pageable item with contracts"
@@ -108,5 +107,5 @@ public interface ContractControllerDocs {
             )
         }
     )
-    void delete(String id) throws ContractNotFoundException, ActiveContractException;
+    void delete(String id) throws ActiveContractException, ContractNotFoundException;
 }

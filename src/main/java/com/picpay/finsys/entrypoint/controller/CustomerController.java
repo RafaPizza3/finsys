@@ -2,7 +2,6 @@ package com.picpay.finsys.entrypoint.controller;
 
 import com.picpay.finsys.core.domain.CustomerDomain;
 import com.picpay.finsys.core.domain.enumeration.CustomerStatus;
-import com.picpay.finsys.core.exception.ActiveContractException;
 import com.picpay.finsys.core.exception.CustomerHasContractException;
 import com.picpay.finsys.core.exception.CustomerNotFoundException;
 import com.picpay.finsys.core.exception.CustomerTooYoungException;
@@ -13,7 +12,7 @@ import com.picpay.finsys.core.usecase.FindCustomerByIdUseCase;
 import com.picpay.finsys.core.usecase.InsertCustomerUseCase;
 import com.picpay.finsys.core.usecase.UpdateCustomerUseCase;
 import com.picpay.finsys.core.usecase.DeleteCustomerUseCase;
-import com.picpay.finsys.entrypoint.controller.docs.CustomerControllerDocs;
+import com.picpay.finsys.entrypoint.controller.api.CustomerControllerAPI;
 import com.picpay.finsys.entrypoint.dto.request.CustomerRequest;
 import com.picpay.finsys.entrypoint.dto.request.CustomerUpdateRequest;
 import com.picpay.finsys.entrypoint.dto.response.CustomerResponse;
@@ -41,7 +40,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/v1/customers")
 @RequiredArgsConstructor
-public class CustomerController implements CustomerControllerDocs {
+public class CustomerController implements CustomerControllerAPI {
     private final CustomerMapperDTO customerMapper;
 
     private final FindCustomerByStatusUseCase findCustomerByStatusUseCase;
@@ -91,7 +90,7 @@ public class CustomerController implements CustomerControllerDocs {
     @Override
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public CustomerResponse insert(@RequestBody @Valid CustomerRequest customer) throws CustomerTooYoungException, InvalidZipCodeException {
+    public CustomerResponse insert(@RequestBody @Valid CustomerRequest customer) throws InvalidZipCodeException, CustomerTooYoungException {
         CustomerDomain requestDomain = customerMapper.toDomain(customer);
         CustomerDomain responseDomain = insertCustomerUseCase.execute(requestDomain, customer.getZipCode());
         return customerMapper.toResponse(responseDomain);
@@ -110,7 +109,7 @@ public class CustomerController implements CustomerControllerDocs {
     @Override
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable String id) throws CustomerNotFoundException, CustomerHasContractException {
+    public void delete(@PathVariable String id) throws CustomerHasContractException, CustomerNotFoundException {
         deleteCustomerUseCase.execute(id);
     }
 }
