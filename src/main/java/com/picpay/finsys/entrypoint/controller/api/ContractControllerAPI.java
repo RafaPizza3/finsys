@@ -1,6 +1,8 @@
-package com.picpay.finsys.entrypoint.controller.docs;
+package com.picpay.finsys.entrypoint.controller.api;
 
 import com.picpay.finsys.core.domain.enumeration.ContractStatus;
+import com.picpay.finsys.core.exception.ActiveContractException;
+import com.picpay.finsys.core.exception.ContractNotFoundException;
 import com.picpay.finsys.entrypoint.dto.request.ContractRequest;
 import com.picpay.finsys.entrypoint.dto.request.ContractUpdateRequest;
 import com.picpay.finsys.entrypoint.dto.response.ContractResponse;
@@ -8,11 +10,12 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.coyote.BadRequestException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 @Tag(name = "Contracts", description = "API for contracts management")
-public interface ContractControllerDocs {
+public interface ContractControllerAPI {
     @Operation(
             summary = "Gets all contracts with that status",
             description = "Returns a Pageable item with contracts"
@@ -54,7 +57,7 @@ public interface ContractControllerDocs {
             )
         }
     )
-    ContractResponse findById(String id);
+    ContractResponse findById(String id) throws ContractNotFoundException;
 
     @Operation(
             summary = "Inserts a contract",
@@ -71,7 +74,7 @@ public interface ContractControllerDocs {
             )
         }
     )
-    ContractResponse insert(ContractRequest request);
+    ContractResponse insert(ContractRequest request) throws BadRequestException;
 
     @Operation(
             summary = "Updates a contract",
@@ -88,7 +91,7 @@ public interface ContractControllerDocs {
             )
     }
     )
-    ContractResponse update(String id, ContractUpdateRequest request);
+    ContractResponse update(String id, ContractUpdateRequest request) throws BadRequestException;
 
     @Operation(
             summary = "Deletes a contract"
@@ -104,5 +107,5 @@ public interface ContractControllerDocs {
             )
         }
     )
-    void delete(String id);
+    void delete(String id) throws ActiveContractException, ContractNotFoundException;
 }

@@ -4,7 +4,6 @@ import com.picpay.finsys.core.domain.ContractDomain;
 import com.picpay.finsys.core.exception.ContractNotFoundException;
 import com.picpay.finsys.core.gateway.ContractGateway;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -12,8 +11,7 @@ import org.springframework.stereotype.Component;
 public class ContractExistenceValidation {
     private final ContractGateway contractGateway;
 
-    @SneakyThrows
-    public void validate(String id) {
+    public void validate(String id) throws ContractNotFoundException {
         ContractDomain contract = contractGateway.findById(id);
         if(contract == null) {
             throw new ContractNotFoundException(id);

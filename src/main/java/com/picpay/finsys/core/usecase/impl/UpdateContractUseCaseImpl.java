@@ -7,12 +7,13 @@ import com.picpay.finsys.core.domain.enumeration.InstallmentStatus;
 import com.picpay.finsys.core.exception.ContractNotFoundException;
 import com.picpay.finsys.core.gateway.ContractGateway;
 import com.picpay.finsys.core.usecase.UpdateContractUseCase;
+import com.picpay.finsys.core.usecase.impl.validation.ContractExistenceValidation;
 import com.picpay.finsys.core.usecase.impl.validation.ContractNewRequestedAmountValidation;
 import com.picpay.finsys.core.usecase.impl.validation.ContractPeriodUpdateValidation;
 import com.picpay.finsys.core.usecase.impl.validation.ContractUpdateRequestValidation;
 import com.picpay.finsys.core.usecase.impl.validation.CustomerExistenceValidation;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
+import org.apache.coyote.BadRequestException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -23,6 +24,7 @@ import java.util.List;
 public class UpdateContractUseCaseImpl implements UpdateContractUseCase {
     private final ContractGateway contractGateway;
 
+    private final ContractExistenceValidation contractExistenceValidation;
     private final CustomerExistenceValidation customerExistenceValidation;
     private final ContractNewRequestedAmountValidation contractNewRequestedAmountValidation;
     private final ContractUpdateRequestValidation contractUpdateRequestValidation;
@@ -31,16 +33,13 @@ public class UpdateContractUseCaseImpl implements UpdateContractUseCase {
     Integer percentage = 100;
 
     @Override
-    @SneakyThrows
-    public ContractDomain execute(String id, ContractDomain contract) {
+    public ContractDomain execute(String id, ContractDomain contract) throws BadRequestException {
         contractUpdateRequestValidation.validate(contract);
 
         Double monthlyInterestRate = 4.0;
 
         ContractDomain bdContract = contractGateway.findById(id);
-        if (bdContract == null) {
-            throw new ContractNotFoundException(id);
-        }
+        contractExistenceValidation.validate(id);
 
         contractPeriodUpdateValidation.validate(contract.getPeriod(), bdContract.getPeriod());
 

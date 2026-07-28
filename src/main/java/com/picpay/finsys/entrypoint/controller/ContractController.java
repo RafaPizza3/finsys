@@ -2,19 +2,22 @@ package com.picpay.finsys.entrypoint.controller;
 
 import com.picpay.finsys.core.domain.ContractDomain;
 import com.picpay.finsys.core.domain.enumeration.ContractStatus;
+import com.picpay.finsys.core.exception.ActiveContractException;
+import com.picpay.finsys.core.exception.ContractNotFoundException;
 import com.picpay.finsys.core.usecase.FindContractByStatusUseCase;
 import com.picpay.finsys.core.usecase.FindAllContractUseCase;
 import com.picpay.finsys.core.usecase.FindContractByIdUseCase;
 import com.picpay.finsys.core.usecase.InsertContractUseCase;
 import com.picpay.finsys.core.usecase.UpdateContractUseCase;
 import com.picpay.finsys.core.usecase.DeleteContractUseCase;
-import com.picpay.finsys.entrypoint.controller.docs.ContractControllerDocs;
+import com.picpay.finsys.entrypoint.controller.api.ContractControllerAPI;
 import com.picpay.finsys.entrypoint.dto.request.ContractRequest;
 import com.picpay.finsys.entrypoint.dto.request.ContractUpdateRequest;
 import com.picpay.finsys.entrypoint.dto.response.ContractResponse;
 import com.picpay.finsys.entrypoint.mapper.ContractMapperDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.BadRequestException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -35,7 +38,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/v1/contracts")
 @RequiredArgsConstructor
-public class ContractController implements ContractControllerDocs {
+public class ContractController implements ContractControllerAPI {
     private final ContractMapperDTO contractMapper;
 
     private final FindContractByStatusUseCase findContractByStatusUseCase;
@@ -76,7 +79,7 @@ public class ContractController implements ContractControllerDocs {
     @Override
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public ContractResponse findById(@PathVariable String id){
+    public ContractResponse findById(@PathVariable String id) throws ContractNotFoundException {
         ContractDomain domain = findContractByIdUseCase.execute(id);
         return contractMapper.toResponse(domain);
     }
@@ -84,7 +87,7 @@ public class ContractController implements ContractControllerDocs {
     @Override
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ContractResponse insert(@RequestBody @Valid ContractRequest contract) {
+    public ContractResponse insert(@RequestBody @Valid ContractRequest contract) throws BadRequestException {
         ContractDomain requestDomain = contractMapper.toDomain(contract);
         ContractDomain responseDomain = insertContractUseCase.execute(requestDomain);
         return contractMapper.toResponse(responseDomain);
@@ -93,7 +96,7 @@ public class ContractController implements ContractControllerDocs {
     @Override
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.CREATED)
-    public ContractResponse update(@PathVariable String id, @RequestBody ContractUpdateRequest request) {
+    public ContractResponse update(@PathVariable String id, @RequestBody ContractUpdateRequest request) throws BadRequestException {
         ContractDomain requestDomain = contractMapper.toDomain(request);
         requestDomain.setId(id);
         ContractDomain responseDomain = updateContractUseCase.execute(id, requestDomain);
@@ -103,7 +106,7 @@ public class ContractController implements ContractControllerDocs {
     @Override
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable String id) {
+    public void delete(@PathVariable String id) throws ActiveContractException, ContractNotFoundException {
         deleteContractUseCase.execute(id);
     }
 }

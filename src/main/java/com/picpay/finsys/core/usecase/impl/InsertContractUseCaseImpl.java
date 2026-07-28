@@ -4,12 +4,13 @@ import com.picpay.finsys.core.domain.ContractDomain;
 import com.picpay.finsys.core.domain.InstallmentDomain;
 import com.picpay.finsys.core.domain.enumeration.ContractStatus;
 import com.picpay.finsys.core.domain.enumeration.InstallmentStatus;
+import com.picpay.finsys.core.exception.CustomerNotFoundException;
 import com.picpay.finsys.core.gateway.ContractGateway;
 import com.picpay.finsys.core.usecase.InsertContractUseCase;
 import com.picpay.finsys.core.usecase.impl.validation.ContractRequestedAmountValidation;
 import com.picpay.finsys.core.usecase.impl.validation.CustomerExistenceValidation;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
+import org.apache.coyote.BadRequestException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -27,8 +28,7 @@ public class InsertContractUseCaseImpl implements InsertContractUseCase {
     Double monthlyInterestRate = 4.0;
 
     @Override
-    @SneakyThrows
-    public ContractDomain execute(ContractDomain contract) {
+    public ContractDomain execute(ContractDomain contract) throws BadRequestException {
         customerExistenceValidation.validate(contract.getCustomerId());
 
         String customerId = contract.getCustomerId();

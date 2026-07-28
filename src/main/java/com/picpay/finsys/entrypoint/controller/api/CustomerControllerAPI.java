@@ -1,6 +1,10 @@
-package com.picpay.finsys.entrypoint.controller.docs;
+package com.picpay.finsys.entrypoint.controller.api;
 
 import com.picpay.finsys.core.domain.enumeration.CustomerStatus;
+import com.picpay.finsys.core.exception.CustomerHasContractException;
+import com.picpay.finsys.core.exception.CustomerNotFoundException;
+import com.picpay.finsys.core.exception.CustomerTooYoungException;
+import com.picpay.finsys.core.exception.InvalidZipCodeException;
 import com.picpay.finsys.entrypoint.dto.request.CustomerRequest;
 import com.picpay.finsys.entrypoint.dto.request.CustomerUpdateRequest;
 import com.picpay.finsys.entrypoint.dto.response.CustomerResponse;
@@ -8,11 +12,12 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.coyote.BadRequestException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 @Tag(name = "Customers", description = "API for customers management")
-public interface CustomerControllerDocs {
+public interface CustomerControllerAPI {
     @Operation(
             summary = "Gets all customers with that status",
             description = "Returns a Pageable item with customers"
@@ -54,7 +59,7 @@ public interface CustomerControllerDocs {
             )
     }
     )
-    CustomerResponse findById(String id);
+    CustomerResponse findById(String id) throws CustomerNotFoundException;
 
     @Operation(
             summary = "Inserts a customer",
@@ -71,7 +76,7 @@ public interface CustomerControllerDocs {
             )
     }
     )
-    CustomerResponse insert(CustomerRequest request);
+    CustomerResponse insert(CustomerRequest request) throws InvalidZipCodeException, CustomerTooYoungException;
 
     @Operation(
             summary = "Updates a customer",
@@ -88,7 +93,7 @@ public interface CustomerControllerDocs {
             )
     }
     )
-    CustomerResponse update(String id, CustomerUpdateRequest request);
+    CustomerResponse update(String id, CustomerUpdateRequest request) throws BadRequestException;
 
     @Operation(
             summary = "Deletes a customer"
@@ -104,5 +109,5 @@ public interface CustomerControllerDocs {
             )
     }
     )
-    void delete(String id);
+    void delete(String id) throws CustomerHasContractException, CustomerNotFoundException;
 }

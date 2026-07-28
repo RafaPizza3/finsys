@@ -3,6 +3,7 @@ package com.picpay.finsys.core.usecase.impl;
 import com.picpay.finsys.core.domain.AddressDomain;
 import com.picpay.finsys.core.domain.CustomerDomain;
 import com.picpay.finsys.core.domain.enumeration.CustomerStatus;
+import com.picpay.finsys.core.exception.CustomerNotFoundException;
 import com.picpay.finsys.core.gateway.AddressGateway;
 import com.picpay.finsys.core.gateway.CustomerGateway;
 import com.picpay.finsys.core.usecase.UpdateCustomerUseCase;
@@ -11,7 +12,7 @@ import com.picpay.finsys.core.usecase.impl.validation.CustomerAgeValidation;
 import com.picpay.finsys.core.usecase.impl.validation.CustomerExistenceValidation;
 import com.picpay.finsys.core.usecase.impl.validation.CustomerUpdateRequestValidation;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
+import org.apache.coyote.BadRequestException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -28,8 +29,7 @@ public class UpdateCustomerUseCaseImpl implements UpdateCustomerUseCase {
     private final CustomerExistenceValidation customerExistenceValidation;
 
     @Override
-    @SneakyThrows
-    public CustomerDomain execute(String id, CustomerDomain customer, String zipCode) {
+    public CustomerDomain execute(String id, CustomerDomain customer, String zipCode) throws BadRequestException {
         customerExistenceValidation.validate(id);
 
         customerUpdateRequestValidation.validate(customer, zipCode);

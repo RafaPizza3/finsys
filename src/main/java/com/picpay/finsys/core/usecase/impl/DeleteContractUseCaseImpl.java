@@ -1,11 +1,12 @@
 package com.picpay.finsys.core.usecase.impl;
 
 import com.picpay.finsys.core.domain.ContractDomain;
+import com.picpay.finsys.core.exception.ActiveContractException;
+import com.picpay.finsys.core.exception.ContractNotFoundException;
 import com.picpay.finsys.core.gateway.ContractGateway;
 import com.picpay.finsys.core.usecase.DeleteContractUseCase;
 import com.picpay.finsys.core.usecase.impl.validation.ContractDeleteValidation;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -16,8 +17,7 @@ public class DeleteContractUseCaseImpl implements DeleteContractUseCase {
     private final ContractDeleteValidation contractDeleteValidation;
 
     @Override
-    @SneakyThrows
-    public void execute(String id) {
+    public void execute(String id) throws ActiveContractException, ContractNotFoundException {
         ContractDomain domain = contractGateway.findById(id);
         contractDeleteValidation.validate(domain, id);
         contractGateway.delete(id);

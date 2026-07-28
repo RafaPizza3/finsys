@@ -6,6 +6,7 @@ import com.picpay.finsys.entrypoint.mapper.ContractMapperDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.BadRequestException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.messaging.Message;
 import org.springframework.stereotype.Component;
@@ -21,10 +22,9 @@ public class InsertContractReceiver {
 
     private final ContractMapperDTO contractMapper;
 
-    @SneakyThrows
     @Bean
     public Consumer<Message<ContractRequest>> insertContractEvent() {
-        return this::receive;
+       return this::receive;
     }
 
     @SneakyThrows

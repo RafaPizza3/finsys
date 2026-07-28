@@ -4,7 +4,6 @@ import com.picpay.finsys.core.domain.enumeration.ContractStatus;
 import com.picpay.finsys.core.exception.CustomerHasContractException;
 import com.picpay.finsys.core.gateway.ContractGateway;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -12,8 +11,7 @@ import org.springframework.stereotype.Component;
 public class CustomerActiveContractsValidation {
     private final ContractGateway contractGateway;
 
-    @SneakyThrows
-    public void validate(String id) {
+    public void validate(String id) throws CustomerHasContractException {
         Integer activeContractsAmount = contractGateway.countActiveContractsByCustomerId(id, ContractStatus.ACTIVE);
 
         if (activeContractsAmount > 0) {
