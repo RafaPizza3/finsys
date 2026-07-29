@@ -4,13 +4,14 @@ import com.picpay.finsys.core.domain.ContractDomain;
 import com.picpay.finsys.core.domain.InstallmentDomain;
 import com.picpay.finsys.core.domain.enumeration.ContractStatus;
 import com.picpay.finsys.core.domain.enumeration.InstallmentStatus;
+import com.picpay.finsys.core.exception.ContractLowRequestedAmountException;
 import com.picpay.finsys.core.exception.CustomerNotFoundException;
 import com.picpay.finsys.core.gateway.ContractGateway;
 import com.picpay.finsys.core.usecase.InsertContractUseCase;
 import com.picpay.finsys.core.usecase.impl.validation.ContractRequestedAmountValidation;
 import com.picpay.finsys.core.usecase.impl.validation.CustomerExistenceValidation;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.BadRequestException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -25,10 +26,11 @@ public class InsertContractUseCaseImpl implements InsertContractUseCase {
     private final CustomerExistenceValidation customerExistenceValidation;
     private final ContractRequestedAmountValidation contractRequestedAmountValidation;
 
-    Double monthlyInterestRate = 4.0;
+    @Value("${finsys.interest-rate.monthly}")
+    private Double monthlyInterestRate;
 
     @Override
-    public ContractDomain execute(ContractDomain contract) throws BadRequestException {
+    public ContractDomain execute(ContractDomain contract) throws CustomerNotFoundException, ContractLowRequestedAmountException {
         customerExistenceValidation.validate(contract.getCustomerId());
 
         String customerId = contract.getCustomerId();

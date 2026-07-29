@@ -2,6 +2,7 @@ package com.picpay.finsys.entrypoint.controller;
 
 import com.picpay.finsys.core.domain.CustomerDomain;
 import com.picpay.finsys.core.domain.enumeration.CustomerStatus;
+import com.picpay.finsys.core.exception.ActiveCustomerException;
 import com.picpay.finsys.core.exception.CustomerHasContractException;
 import com.picpay.finsys.core.exception.CustomerNotFoundException;
 import com.picpay.finsys.core.exception.CustomerTooYoungException;
@@ -9,6 +10,7 @@ import com.picpay.finsys.core.exception.InvalidZipCodeException;
 import com.picpay.finsys.core.usecase.FindCustomerByStatusUseCase;
 import com.picpay.finsys.core.usecase.FindAllCustomerUseCase;
 import com.picpay.finsys.core.usecase.FindCustomerByIdUseCase;
+import com.picpay.finsys.core.usecase.InactivateCustomerUseCase;
 import com.picpay.finsys.core.usecase.InsertCustomerUseCase;
 import com.picpay.finsys.core.usecase.UpdateCustomerUseCase;
 import com.picpay.finsys.core.usecase.DeleteCustomerUseCase;
@@ -48,6 +50,7 @@ public class CustomerController implements CustomerControllerAPI {
     private final FindCustomerByIdUseCase findCustomerByIdUseCase;
     private final InsertCustomerUseCase insertCustomerUseCase;
     private final UpdateCustomerUseCase updateCustomerUseCase;
+    private final InactivateCustomerUseCase inactivateCustomerUseCase;
     private final DeleteCustomerUseCase deleteCustomerUseCase;
 
     @Override
@@ -108,8 +111,16 @@ public class CustomerController implements CustomerControllerAPI {
 
     @Override
     @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.CREATED)
+    public CustomerResponse inactivate(@PathVariable String id) throws CustomerHasContractException, CustomerNotFoundException {
+        CustomerDomain customerDomain = inactivateCustomerUseCase.execute(id);
+        return customerMapper.toResponse(customerDomain);
+    }
+
+    @Override
+    @DeleteMapping("/delete/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable String id) throws CustomerHasContractException, CustomerNotFoundException {
+    public void delete(@PathVariable String id) throws CustomerHasContractException, CustomerNotFoundException, ActiveCustomerException {
         deleteCustomerUseCase.execute(id);
     }
 }

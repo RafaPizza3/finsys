@@ -14,6 +14,8 @@ public class InstallmentEntity {
 
     private Double amount;
 
+    private Double paidAmount;
+
     private InstallmentStatus status;
 
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)

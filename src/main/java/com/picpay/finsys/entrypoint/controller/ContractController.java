@@ -3,7 +3,11 @@ package com.picpay.finsys.entrypoint.controller;
 import com.picpay.finsys.core.domain.ContractDomain;
 import com.picpay.finsys.core.domain.enumeration.ContractStatus;
 import com.picpay.finsys.core.exception.ActiveContractException;
+import com.picpay.finsys.core.exception.CanceledContractException;
 import com.picpay.finsys.core.exception.ContractNotFoundException;
+import com.picpay.finsys.core.exception.ContractWithPaidInstallmentException;
+import com.picpay.finsys.core.exception.FinishedContractException;
+import com.picpay.finsys.core.usecase.CancelContractUseCase;
 import com.picpay.finsys.core.usecase.FindContractByStatusUseCase;
 import com.picpay.finsys.core.usecase.FindAllContractUseCase;
 import com.picpay.finsys.core.usecase.FindContractByIdUseCase;
@@ -46,6 +50,7 @@ public class ContractController implements ContractControllerAPI {
     private final FindContractByIdUseCase findContractByIdUseCase;
     private final InsertContractUseCase insertContractUseCase;
     private final UpdateContractUseCase updateContractUseCase;
+    private final CancelContractUseCase cancelContractUseCase;
     private final DeleteContractUseCase deleteContractUseCase;
 
     @Override
@@ -105,6 +110,13 @@ public class ContractController implements ContractControllerAPI {
 
     @Override
     @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void cancel(@PathVariable String id) throws CanceledContractException, FinishedContractException, ContractWithPaidInstallmentException, ContractNotFoundException {
+        cancelContractUseCase.execute(id);
+    }
+
+    @Override
+    @DeleteMapping("/delete/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable String id) throws ActiveContractException, ContractNotFoundException {
         deleteContractUseCase.execute(id);

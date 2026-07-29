@@ -1,6 +1,8 @@
 server:
   port: ${PORT}
 finsys:
+  interest-rate:
+    monthly: ${MONTHLY_INTEREST_RATE}
   viacep:
     url: ${VIA_CEP_URL}
 

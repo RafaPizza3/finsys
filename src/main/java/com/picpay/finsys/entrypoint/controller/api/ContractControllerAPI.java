@@ -2,7 +2,10 @@ package com.picpay.finsys.entrypoint.controller.api;
 
 import com.picpay.finsys.core.domain.enumeration.ContractStatus;
 import com.picpay.finsys.core.exception.ActiveContractException;
+import com.picpay.finsys.core.exception.CanceledContractException;
 import com.picpay.finsys.core.exception.ContractNotFoundException;
+import com.picpay.finsys.core.exception.ContractWithPaidInstallmentException;
+import com.picpay.finsys.core.exception.FinishedContractException;
 import com.picpay.finsys.entrypoint.dto.request.ContractRequest;
 import com.picpay.finsys.entrypoint.dto.request.ContractUpdateRequest;
 import com.picpay.finsys.entrypoint.dto.response.ContractResponse;
@@ -92,6 +95,22 @@ public interface ContractControllerAPI {
     }
     )
     ContractResponse update(String id, ContractUpdateRequest request) throws BadRequestException;
+
+    @Operation(
+            summary = "Cancels a contract"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "Contract canceled"
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "The contract is not cancelable"
+            )
+    }
+    )
+    void cancel(String id) throws CanceledContractException, FinishedContractException, ContractWithPaidInstallmentException, ContractNotFoundException;
 
     @Operation(
             summary = "Deletes a contract"

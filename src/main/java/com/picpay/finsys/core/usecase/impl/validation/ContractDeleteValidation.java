@@ -12,8 +12,8 @@ import org.springframework.stereotype.Component;
 public class ContractDeleteValidation {
     private final ContractExistenceValidation contractExistenceValidation;
 
-    public void validate(ContractDomain contract, String id) throws ActiveContractException, ContractNotFoundException {
-        contractExistenceValidation.validate(id);
+    public void validate(ContractDomain contract) throws ActiveContractException, ContractNotFoundException {
+        contractExistenceValidation.validate(contract.getId());
 
         if(contract.getStatus() == ContractStatus.ACTIVE) {
             throw new ActiveContractException();

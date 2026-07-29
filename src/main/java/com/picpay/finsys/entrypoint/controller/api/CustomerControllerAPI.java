@@ -1,6 +1,7 @@
 package com.picpay.finsys.entrypoint.controller.api;
 
 import com.picpay.finsys.core.domain.enumeration.CustomerStatus;
+import com.picpay.finsys.core.exception.ActiveCustomerException;
 import com.picpay.finsys.core.exception.CustomerHasContractException;
 import com.picpay.finsys.core.exception.CustomerNotFoundException;
 import com.picpay.finsys.core.exception.CustomerTooYoungException;
@@ -96,6 +97,22 @@ public interface CustomerControllerAPI {
     CustomerResponse update(String id, CustomerUpdateRequest request) throws BadRequestException;
 
     @Operation(
+            summary = "Inactivates a customer"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "Customer inactivated"
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "The customer is not inactivable"
+            )
+    }
+    )
+    CustomerResponse inactivate(String id) throws CustomerHasContractException, CustomerNotFoundException;
+
+    @Operation(
             summary = "Deletes a customer"
     )
     @ApiResponses(value = {
@@ -109,5 +126,5 @@ public interface CustomerControllerAPI {
             )
     }
     )
-    void delete(String id) throws CustomerHasContractException, CustomerNotFoundException;
+    void delete(String id) throws CustomerHasContractException, CustomerNotFoundException, ActiveCustomerException;
 }
