@@ -1,10 +1,12 @@
 package com.picpay.finsys.entrypoint.controller.api;
 
 import com.picpay.finsys.core.domain.enumeration.CustomerStatus;
-import com.picpay.finsys.core.exception.ActiveCustomerException;
+import com.picpay.finsys.core.exception.InactiveCustomerException;
 import com.picpay.finsys.core.exception.CustomerHasContractException;
 import com.picpay.finsys.core.exception.CustomerNotFoundException;
 import com.picpay.finsys.core.exception.CustomerTooYoungException;
+import com.picpay.finsys.core.exception.InvalidDocumentException;
+import com.picpay.finsys.core.exception.InvalidEmailException;
 import com.picpay.finsys.core.exception.InvalidZipCodeException;
 import com.picpay.finsys.entrypoint.dto.request.CustomerRequest;
 import com.picpay.finsys.entrypoint.dto.request.CustomerUpdateRequest;
@@ -77,7 +79,7 @@ public interface CustomerControllerAPI {
             )
     }
     )
-    CustomerResponse insert(CustomerRequest request) throws InvalidZipCodeException, CustomerTooYoungException;
+    CustomerResponse insert(CustomerRequest request) throws InvalidZipCodeException, CustomerTooYoungException, InvalidDocumentException, InvalidEmailException;
 
     @Operation(
             summary = "Updates a customer",
@@ -126,5 +128,5 @@ public interface CustomerControllerAPI {
             )
     }
     )
-    void delete(String id) throws CustomerHasContractException, CustomerNotFoundException, ActiveCustomerException;
+    void delete(String id) throws CustomerHasContractException, CustomerNotFoundException, InactiveCustomerException;
 }

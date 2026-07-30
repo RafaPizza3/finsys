@@ -58,7 +58,7 @@ public class UpdateCustomerUseCaseImpl implements UpdateCustomerUseCase {
         }
 
         if (zipCode != null) {
-            AddressDomain address = addressGateway.getAdressByZipCode(zipCode);
+            AddressDomain address = addressGateway.getAddressByZipCode(zipCode);
             System.out.println(address.getAddress());
             customerAddressValidation.validate(address, zipCode);
             dbCustomer.setAddress(address);

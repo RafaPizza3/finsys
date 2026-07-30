@@ -2,10 +2,12 @@ package com.picpay.finsys.entrypoint.controller;
 
 import com.picpay.finsys.core.domain.CustomerDomain;
 import com.picpay.finsys.core.domain.enumeration.CustomerStatus;
-import com.picpay.finsys.core.exception.ActiveCustomerException;
+import com.picpay.finsys.core.exception.InactiveCustomerException;
 import com.picpay.finsys.core.exception.CustomerHasContractException;
 import com.picpay.finsys.core.exception.CustomerNotFoundException;
 import com.picpay.finsys.core.exception.CustomerTooYoungException;
+import com.picpay.finsys.core.exception.InvalidDocumentException;
+import com.picpay.finsys.core.exception.InvalidEmailException;
 import com.picpay.finsys.core.exception.InvalidZipCodeException;
 import com.picpay.finsys.core.usecase.FindCustomerByStatusUseCase;
 import com.picpay.finsys.core.usecase.FindAllCustomerUseCase;
@@ -93,7 +95,7 @@ public class CustomerController implements CustomerControllerAPI {
     @Override
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public CustomerResponse insert(@RequestBody @Valid CustomerRequest customer) throws InvalidZipCodeException, CustomerTooYoungException {
+    public CustomerResponse insert(@RequestBody @Valid CustomerRequest customer) throws InvalidZipCodeException, CustomerTooYoungException, InvalidDocumentException, InvalidEmailException {
         CustomerDomain requestDomain = customerMapper.toDomain(customer);
         CustomerDomain responseDomain = insertCustomerUseCase.execute(requestDomain, customer.getZipCode());
         return customerMapper.toResponse(responseDomain);
@@ -120,7 +122,7 @@ public class CustomerController implements CustomerControllerAPI {
     @Override
     @DeleteMapping("/delete/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable String id) throws CustomerHasContractException, CustomerNotFoundException, ActiveCustomerException {
+    public void delete(@PathVariable String id) throws CustomerHasContractException, CustomerNotFoundException, InactiveCustomerException {
         deleteCustomerUseCase.execute(id);
     }
 }

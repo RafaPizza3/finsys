@@ -6,8 +6,10 @@ import com.picpay.finsys.core.exception.ActiveContractException;
 import com.picpay.finsys.core.exception.CanceledContractException;
 import com.picpay.finsys.core.exception.ContractNotFoundException;
 import com.picpay.finsys.core.exception.ContractWithPaidInstallmentException;
+import com.picpay.finsys.core.exception.CustomerNotFoundException;
 import com.picpay.finsys.core.exception.FinishedContractException;
 import com.picpay.finsys.core.usecase.CancelContractUseCase;
+import com.picpay.finsys.core.usecase.FindAllContractByCustomerIdAndStatusUseCase;
 import com.picpay.finsys.core.usecase.FindContractByStatusUseCase;
 import com.picpay.finsys.core.usecase.FindAllContractUseCase;
 import com.picpay.finsys.core.usecase.FindContractByIdUseCase;
@@ -45,6 +47,7 @@ import java.util.List;
 public class ContractController implements ContractControllerAPI {
     private final ContractMapperDTO contractMapper;
 
+    private final FindAllContractByCustomerIdAndStatusUseCase findAllContractByCustomerIdAndStatusUseCase;
     private final FindContractByStatusUseCase findContractByStatusUseCase;
     private final FindAllContractUseCase findAllContractUseCase;
     private final FindContractByIdUseCase findContractByIdUseCase;
@@ -52,6 +55,23 @@ public class ContractController implements ContractControllerAPI {
     private final UpdateContractUseCase updateContractUseCase;
     private final CancelContractUseCase cancelContractUseCase;
     private final DeleteContractUseCase deleteContractUseCase;
+
+    @Override
+    @GetMapping("/{customerId}/{status}")
+    @ResponseStatus(HttpStatus.OK)
+    public Page<ContractResponse> findAllByCustomerIdAndStatus(
+            @PathVariable String customerId,
+            @PathVariable ContractStatus status,
+            @PageableDefault(size = 5) Pageable page
+    ) throws CustomerNotFoundException {
+        Page<ContractDomain> domainPage = findAllContractByCustomerIdAndStatusUseCase.execute(customerId, status, page);
+        List<ContractResponse> domainList = domainPage
+                .stream()
+                .map(contractMapper::toResponse)
+                .toList();
+
+        return new PageImpl<>(domainList, page, domainPage.getTotalElements());
+    }
 
     @Override
     @GetMapping("/status/{status}")

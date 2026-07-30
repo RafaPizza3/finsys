@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -36,6 +37,7 @@ public class UpdateContractUseCaseImpl implements UpdateContractUseCase {
 
     @Value("${finsys.interest-rate.monthly}")
     private Double monthlyInterestRate;
+    private DecimalFormat df = new DecimalFormat("#.00");
 
     Integer percentage = 100;
 
@@ -173,12 +175,16 @@ public class UpdateContractUseCaseImpl implements UpdateContractUseCase {
     }
 
     private Double calcNewInstallmentAmount(Double value, Integer period, Double interestRate) {
-        return (value / period) + (value * (interestRate / this.percentage));
+        Double installmentAmount = (value / period) + (value * (interestRate / this.percentage));
+        String formattedInstallmentAmount = this.df.format(installmentAmount).replace(',', '.');
+        return Double.parseDouble(formattedInstallmentAmount);
     }
 
     private Double calcNewTotalAmount(Double value, Integer period, Double interestRate) {
         Double newInstallmentAmount = calcNewInstallmentAmount(value, period, interestRate);
 
-        return newInstallmentAmount * period;
+        String formattedNewTotalAmount = this.df.format(newInstallmentAmount * period).replace(',', '.');
+
+        return Double.parseDouble(formattedNewTotalAmount);
     }
 }

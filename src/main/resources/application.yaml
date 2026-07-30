@@ -20,11 +20,15 @@ spring:
              read-timeout: ${VIA_CEP_READ_TIMEOUT}
     function:
       definition:
-        insertContractEvent
+        insertContractEvent;
+        installmentPaymentEvent
     stream:
       bindings:
         insertContractEvent-in-0:
           destination: finsys-insert-contract
+          group: finsys-events-group
+        installmentPaymentEvent-in-0:
+          destination: finsys-installment-payment
           group: finsys-events-group
   data:
     mongodb:

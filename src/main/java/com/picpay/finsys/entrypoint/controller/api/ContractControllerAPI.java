@@ -5,6 +5,7 @@ import com.picpay.finsys.core.exception.ActiveContractException;
 import com.picpay.finsys.core.exception.CanceledContractException;
 import com.picpay.finsys.core.exception.ContractNotFoundException;
 import com.picpay.finsys.core.exception.ContractWithPaidInstallmentException;
+import com.picpay.finsys.core.exception.CustomerNotFoundException;
 import com.picpay.finsys.core.exception.FinishedContractException;
 import com.picpay.finsys.entrypoint.dto.request.ContractRequest;
 import com.picpay.finsys.entrypoint.dto.request.ContractUpdateRequest;
@@ -19,6 +20,19 @@ import org.springframework.data.domain.Pageable;
 
 @Tag(name = "Contracts", description = "API for contracts management")
 public interface ContractControllerAPI {
+    @Operation(
+            summary = "Gets all contracts with that customer id and status",
+            description = "Returns a Pageable item with contracts"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Pageable list returned with success"
+            )
+    }
+    )
+    Page<ContractResponse> findAllByCustomerIdAndStatus(String customerId, ContractStatus status, Pageable page) throws CustomerNotFoundException;
+
     @Operation(
             summary = "Gets all contracts with that status",
             description = "Returns a Pageable item with contracts"
