@@ -21,5 +21,4 @@ public class ContractResponse {
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private ContractStatus status;
-    private List<InstallmentDomain> installments;
 }

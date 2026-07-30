@@ -21,6 +21,17 @@ public class ContractAdapter implements ContractGateway {
     private final ContractMapper contractMapper;
 
     @Override
+    public Page<ContractDomain> findAllByCustomerIdAndStatus(String customerId, ContractStatus status, Pageable page) {
+        Page<ContractEntity> contractPage = contractRepository.findAllByCustomerIdAndStatus(customerId, status, page);
+        List<ContractDomain> contractList = contractPage
+                .stream()
+                .map(contractMapper::toDomain)
+                .toList();
+
+        return new PageImpl<>(contractList, page, contractPage.getTotalElements());
+    }
+
+    @Override
     public Page<ContractDomain> findAllByStatus(ContractStatus status, Pageable page) {
         Page<ContractEntity> contractPage = contractRepository.findAllByStatus(status, page);
         List<ContractDomain> contractList = contractPage

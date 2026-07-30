@@ -30,7 +30,7 @@ public class InsertCustomerUseCaseImpl implements InsertCustomerUseCase {
         String document = customer.getDocument();
         String email = customer.getEmail();
         LocalDateTime birthDate = customer.getBirthDate();
-        AddressDomain address = addressGateway.getAdressByZipCode(zipCode);
+        AddressDomain address = addressGateway.getAddressByZipCode(zipCode);
 
         customerAddressValidation.validate(address, zipCode);
 

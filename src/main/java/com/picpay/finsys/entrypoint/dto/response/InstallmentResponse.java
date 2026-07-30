@@ -9,7 +9,9 @@ import java.time.LocalDateTime;
 @Getter
 @Builder
 public class InstallmentResponse {
+    private String id;
     private Double amount;
+    private Double paidAmount;
     private InstallmentStatus status;
     private LocalDateTime dueDate;
     private LocalDateTime paidDate;

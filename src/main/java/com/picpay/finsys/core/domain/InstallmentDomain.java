@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 public class InstallmentDomain {
     private String id;
     private Double amount;
+    private Double paidAmount;
     private InstallmentStatus status;
     private LocalDateTime dueDate;
     private LocalDateTime paidDate;

@@ -1,14 +1,14 @@
 package com.picpay.finsys.core.usecase.impl.validation;
 
 import com.picpay.finsys.core.domain.ContractDomain;
-import org.apache.coyote.BadRequestException;
+import com.picpay.finsys.core.exception.NullUpdateRequestException;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ContractUpdateRequestValidation {
-    public void validate(ContractDomain request) throws BadRequestException {
+    public void validate(ContractDomain request) throws NullUpdateRequestException {
         if (request.getCustomerId() == null && request.getRequestedAmount() == null && request.getPeriod() == null) {
-            throw new BadRequestException("at least 1 value must be requested");
+            throw new NullUpdateRequestException();
         }
     }
 }

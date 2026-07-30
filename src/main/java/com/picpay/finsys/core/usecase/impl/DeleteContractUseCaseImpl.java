@@ -18,8 +18,8 @@ public class DeleteContractUseCaseImpl implements DeleteContractUseCase {
 
     @Override
     public void execute(String id) throws ActiveContractException, ContractNotFoundException {
-        ContractDomain domain = contractGateway.findById(id);
-        contractDeleteValidation.validate(domain, id);
+        ContractDomain contract = contractGateway.findById(id);
+        contractDeleteValidation.validate(contract);
         contractGateway.delete(id);
     }
 }
