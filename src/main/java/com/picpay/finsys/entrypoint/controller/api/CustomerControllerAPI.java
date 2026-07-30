@@ -5,8 +5,6 @@ import com.picpay.finsys.core.exception.InactiveCustomerException;
 import com.picpay.finsys.core.exception.CustomerHasContractException;
 import com.picpay.finsys.core.exception.CustomerNotFoundException;
 import com.picpay.finsys.core.exception.CustomerTooYoungException;
-import com.picpay.finsys.core.exception.InvalidDocumentException;
-import com.picpay.finsys.core.exception.InvalidEmailException;
 import com.picpay.finsys.core.exception.InvalidZipCodeException;
 import com.picpay.finsys.entrypoint.dto.request.CustomerRequest;
 import com.picpay.finsys.entrypoint.dto.request.CustomerUpdateRequest;
@@ -79,7 +77,7 @@ public interface CustomerControllerAPI {
             )
     }
     )
-    CustomerResponse insert(CustomerRequest request) throws InvalidZipCodeException, CustomerTooYoungException, InvalidDocumentException, InvalidEmailException;
+    CustomerResponse insert(CustomerRequest request) throws InvalidZipCodeException, CustomerTooYoungException;
 
     @Operation(
             summary = "Updates a customer",

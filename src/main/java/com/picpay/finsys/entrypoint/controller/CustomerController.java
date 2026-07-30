@@ -6,8 +6,6 @@ import com.picpay.finsys.core.exception.InactiveCustomerException;
 import com.picpay.finsys.core.exception.CustomerHasContractException;
 import com.picpay.finsys.core.exception.CustomerNotFoundException;
 import com.picpay.finsys.core.exception.CustomerTooYoungException;
-import com.picpay.finsys.core.exception.InvalidDocumentException;
-import com.picpay.finsys.core.exception.InvalidEmailException;
 import com.picpay.finsys.core.exception.InvalidZipCodeException;
 import com.picpay.finsys.core.usecase.FindCustomerByStatusUseCase;
 import com.picpay.finsys.core.usecase.FindAllCustomerUseCase;
@@ -95,7 +93,7 @@ public class CustomerController implements CustomerControllerAPI {
     @Override
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public CustomerResponse insert(@RequestBody @Valid CustomerRequest customer) throws InvalidZipCodeException, CustomerTooYoungException, InvalidDocumentException, InvalidEmailException {
+    public CustomerResponse insert(@RequestBody @Valid CustomerRequest customer) throws InvalidZipCodeException, CustomerTooYoungException {
         CustomerDomain requestDomain = customerMapper.toDomain(customer);
         CustomerDomain responseDomain = insertCustomerUseCase.execute(requestDomain, customer.getZipCode());
         return customerMapper.toResponse(responseDomain);

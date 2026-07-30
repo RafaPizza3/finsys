@@ -4,16 +4,12 @@ import com.picpay.finsys.core.domain.AddressDomain;
 import com.picpay.finsys.core.domain.CustomerDomain;
 import com.picpay.finsys.core.domain.enumeration.CustomerStatus;
 import com.picpay.finsys.core.exception.CustomerTooYoungException;
-import com.picpay.finsys.core.exception.InvalidDocumentException;
-import com.picpay.finsys.core.exception.InvalidEmailException;
 import com.picpay.finsys.core.exception.InvalidZipCodeException;
 import com.picpay.finsys.core.gateway.AddressGateway;
 import com.picpay.finsys.core.gateway.CustomerGateway;
 import com.picpay.finsys.core.usecase.InsertCustomerUseCase;
 import com.picpay.finsys.core.usecase.impl.validation.CustomerAddressValidation;
 import com.picpay.finsys.core.usecase.impl.validation.CustomerAgeValidation;
-import com.picpay.finsys.core.usecase.impl.validation.CustomerDocumentValidation;
-import com.picpay.finsys.core.usecase.impl.validation.CustomerEmailValidation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,21 +21,17 @@ public class InsertCustomerUseCaseImpl implements InsertCustomerUseCase {
     private final CustomerGateway customerGateway;
     private final AddressGateway addressGateway;
 
-    private final CustomerDocumentValidation customerDocumentValidation;
-    private final CustomerEmailValidation customerEmailValidation;
     private final CustomerAddressValidation customerAddressValidation;
     private final CustomerAgeValidation customerAgeValidation;
 
     @Override
-    public CustomerDomain execute(CustomerDomain customer, String zipCode) throws InvalidZipCodeException, CustomerTooYoungException, InvalidDocumentException, InvalidEmailException {
+    public CustomerDomain execute(CustomerDomain customer, String zipCode) throws InvalidZipCodeException, CustomerTooYoungException {
         String name = customer.getName();
         String document = customer.getDocument();
         String email = customer.getEmail();
         LocalDateTime birthDate = customer.getBirthDate();
         AddressDomain address = addressGateway.getAddressByZipCode(zipCode);
 
-        customerDocumentValidation.validate(document);
-        customerEmailValidation.validate(email);
         customerAddressValidation.validate(address, zipCode);
 
         LocalDateTime createdAt = LocalDateTime.now();

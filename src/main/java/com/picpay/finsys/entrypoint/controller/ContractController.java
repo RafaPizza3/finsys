@@ -74,7 +74,7 @@ public class ContractController implements ContractControllerAPI {
     }
 
     @Override
-    @GetMapping("/status/{status}")
+    @GetMapping("/{status}")
     @ResponseStatus(HttpStatus.OK)
     public Page<ContractResponse> findAllByStatus(
             @PathVariable ContractStatus status, @PageableDefault(size = 5) Pageable page
