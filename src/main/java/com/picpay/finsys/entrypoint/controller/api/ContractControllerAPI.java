@@ -3,10 +3,16 @@ package com.picpay.finsys.entrypoint.controller.api;
 import com.picpay.finsys.core.domain.enumeration.ContractStatus;
 import com.picpay.finsys.core.exception.ActiveContractException;
 import com.picpay.finsys.core.exception.CanceledContractException;
+import com.picpay.finsys.core.exception.ContractLowPeriodException;
+import com.picpay.finsys.core.exception.ContractLowRequestedAmountException;
 import com.picpay.finsys.core.exception.ContractNotFoundException;
 import com.picpay.finsys.core.exception.ContractWithPaidInstallmentException;
 import com.picpay.finsys.core.exception.CustomerNotFoundException;
 import com.picpay.finsys.core.exception.FinishedContractException;
+import com.picpay.finsys.core.exception.InactiveCustomerException;
+import com.picpay.finsys.core.exception.NewLowerContractPeriodException;
+import com.picpay.finsys.core.exception.NewLowerContractRequestedAmountException;
+import com.picpay.finsys.core.exception.NullUpdateRequestException;
 import com.picpay.finsys.entrypoint.dto.request.ContractRequest;
 import com.picpay.finsys.entrypoint.dto.request.ContractUpdateRequest;
 import com.picpay.finsys.entrypoint.dto.response.ContractResponse;
@@ -91,7 +97,7 @@ public interface ContractControllerAPI {
             )
         }
     )
-    ContractResponse insert(ContractRequest request) throws BadRequestException;
+    ContractResponse insert(ContractRequest request) throws CustomerNotFoundException, ContractLowRequestedAmountException, InactiveCustomerException, ContractLowPeriodException;
 
     @Operation(
             summary = "Updates a contract",
@@ -108,7 +114,7 @@ public interface ContractControllerAPI {
             )
     }
     )
-    ContractResponse update(String id, ContractUpdateRequest request) throws BadRequestException;
+    ContractResponse update(String id, ContractUpdateRequest request) throws NullUpdateRequestException, ContractNotFoundException, NewLowerContractPeriodException, CustomerNotFoundException, NewLowerContractRequestedAmountException;
 
     @Operation(
             summary = "Cancels a contract"

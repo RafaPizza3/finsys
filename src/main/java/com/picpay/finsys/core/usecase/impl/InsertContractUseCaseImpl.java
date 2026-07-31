@@ -4,11 +4,13 @@ import com.picpay.finsys.core.domain.ContractDomain;
 import com.picpay.finsys.core.domain.InstallmentDomain;
 import com.picpay.finsys.core.domain.enumeration.ContractStatus;
 import com.picpay.finsys.core.domain.enumeration.InstallmentStatus;
+import com.picpay.finsys.core.exception.ContractLowPeriodException;
 import com.picpay.finsys.core.exception.ContractLowRequestedAmountException;
 import com.picpay.finsys.core.exception.CustomerNotFoundException;
 import com.picpay.finsys.core.exception.InactiveCustomerException;
 import com.picpay.finsys.core.gateway.ContractGateway;
 import com.picpay.finsys.core.usecase.InsertContractUseCase;
+import com.picpay.finsys.core.usecase.impl.validation.ContractPeriodValidation;
 import com.picpay.finsys.core.usecase.impl.validation.ContractRequestedAmountValidation;
 import com.picpay.finsys.core.usecase.impl.validation.CustomerExistenceValidation;
 import com.picpay.finsys.core.usecase.impl.validation.CustomerStatusValidation;
@@ -29,19 +31,23 @@ public class InsertContractUseCaseImpl implements InsertContractUseCase {
     private final CustomerExistenceValidation customerExistenceValidation;
     private final CustomerStatusValidation customerStatusValidation;
     private final ContractRequestedAmountValidation contractRequestedAmountValidation;
+    private final ContractPeriodValidation contractPeriodValidation;
 
     @Value("${finsys.interest-rate.monthly}")
     private Double monthlyInterestRate;
     private DecimalFormat df = new DecimalFormat("#.00");
 
     @Override
-    public ContractDomain execute(ContractDomain contract) throws CustomerNotFoundException, ContractLowRequestedAmountException, InactiveCustomerException {
+    public ContractDomain execute(ContractDomain contract) throws CustomerNotFoundException, ContractLowRequestedAmountException, InactiveCustomerException, ContractLowPeriodException {
         customerExistenceValidation.validate(contract.getCustomerId());
         customerStatusValidation.validate(contract.getCustomerId());
 
         String customerId = contract.getCustomerId();
         Double requestedAmount = contract.getRequestedAmount();
         Integer period = contract.getPeriod();
+
+        contractRequestedAmountValidation.validate(requestedAmount);
+        contractPeriodValidation.validate(period);
 
         Double installmentAmount = calcInstallmentAmount(requestedAmount, period, this.monthlyInterestRate);
         String formattedTotalAmount = this.df.format(installmentAmount * period).replace(',', '.');
@@ -51,8 +57,6 @@ public class InsertContractUseCaseImpl implements InsertContractUseCase {
         ContractStatus status = ContractStatus.ACTIVE;
 
         List<InstallmentDomain> installments = createInstallments(period, installmentAmount);
-
-        contractRequestedAmountValidation.validate(requestedAmount);
 
         ContractDomain domain = createObject(
                 customerId,
