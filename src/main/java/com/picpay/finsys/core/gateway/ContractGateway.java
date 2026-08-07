@@ -6,11 +6,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Map;
 
 public interface ContractGateway {
     Page<ContractDomain> findAllByCustomerIdAndStatus(String customerId, ContractStatus status, Pageable page);
     Page<ContractDomain> findAllByStatus(ContractStatus status, Pageable page);
     Page<ContractDomain> findAll(Pageable page);
+    List<ContractDomain> findAllIds();
     ContractDomain findById(String id);
     ContractDomain insert(ContractDomain contract);
     ContractDomain update(ContractDomain contract);

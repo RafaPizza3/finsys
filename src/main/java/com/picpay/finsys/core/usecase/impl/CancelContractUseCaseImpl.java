@@ -38,7 +38,7 @@ public class CancelContractUseCaseImpl implements CancelContractUseCase {
     }
 
     ContractDomain cancelInstallments(ContractDomain contract) {
-        for (int i = 0; i == contract.getInstallments().size(); i++) {
+        for (int i = 0; i <= contract.getInstallments().size(); i++) {
             InstallmentDomain installment = contract.getInstallments().get(i);
             installment.setStatus(InstallmentStatus.CANCELED);
 

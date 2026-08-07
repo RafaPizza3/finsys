@@ -8,5 +8,5 @@ import com.picpay.finsys.core.exception.InactiveCustomerException;
 import org.apache.coyote.BadRequestException;
 
 public interface InsertContractUseCase {
-    ContractDomain execute(ContractDomain contract) throws CustomerNotFoundException, ContractLowRequestedAmountException, InactiveCustomerException, ContractLowPeriodException;
+    ContractDomain execute(ContractDomain contract, String username) throws CustomerNotFoundException, ContractLowRequestedAmountException, InactiveCustomerException, ContractLowPeriodException;
 }

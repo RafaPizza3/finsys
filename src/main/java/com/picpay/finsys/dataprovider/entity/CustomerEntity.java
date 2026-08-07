@@ -6,13 +6,17 @@ import lombok.Getter;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.MongoId;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.List;
 
 @Getter
 @Builder
 @Document(collection = "customer")
-public class CustomerEntity {
+public class CustomerEntity implements UserDetails {
     @MongoId
     private String id;
 
@@ -27,7 +31,19 @@ public class CustomerEntity {
 
     private String email;
 
+    private String password;
+
     private LocalDateTime birthDate;
 
     private AddressEntity address;
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of();
+    }
+
+    @Override
+    public String getUsername() {
+        return email;
+    }
 }

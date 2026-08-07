@@ -10,17 +10,13 @@ import com.picpay.finsys.core.exception.ContractWithPaidInstallmentException;
 import com.picpay.finsys.core.exception.CustomerNotFoundException;
 import com.picpay.finsys.core.exception.FinishedContractException;
 import com.picpay.finsys.core.exception.InactiveCustomerException;
-import com.picpay.finsys.core.exception.NewLowerContractPeriodException;
-import com.picpay.finsys.core.exception.NewLowerContractRequestedAmountException;
-import com.picpay.finsys.core.exception.NullUpdateRequestException;
 import com.picpay.finsys.entrypoint.dto.request.ContractRequest;
-import com.picpay.finsys.entrypoint.dto.request.ContractUpdateRequest;
+import com.picpay.finsys.entrypoint.dto.request.RefinanceRequest;
 import com.picpay.finsys.entrypoint.dto.response.ContractResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.apache.coyote.BadRequestException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -100,13 +96,13 @@ public interface ContractControllerAPI {
     ContractResponse insert(ContractRequest request) throws CustomerNotFoundException, ContractLowRequestedAmountException, InactiveCustomerException, ContractLowPeriodException;
 
     @Operation(
-            summary = "Updates a contract",
-            description = "Returns the updated contract"
+            summary = "Refinances a contract",
+            description = "Returns the refinanced contract"
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "201",
-                    description = "Contract updated"
+                    description = "Contract refinanced"
             ),
             @ApiResponse(
                     responseCode = "400",
@@ -114,7 +110,8 @@ public interface ContractControllerAPI {
             )
     }
     )
-    ContractResponse update(String id, ContractUpdateRequest request) throws NullUpdateRequestException, ContractNotFoundException, NewLowerContractPeriodException, CustomerNotFoundException, NewLowerContractRequestedAmountException;
+    ContractResponse refinance(RefinanceRequest request) throws CanceledContractException, FinishedContractException, ContractNotFoundException;
+
 
     @Operation(
             summary = "Cancels a contract"

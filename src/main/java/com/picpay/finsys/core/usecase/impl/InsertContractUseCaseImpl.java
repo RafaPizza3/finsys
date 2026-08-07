@@ -3,12 +3,14 @@ package com.picpay.finsys.core.usecase.impl;
 import com.picpay.finsys.core.domain.ContractDomain;
 import com.picpay.finsys.core.domain.InstallmentDomain;
 import com.picpay.finsys.core.domain.enumeration.ContractStatus;
+import com.picpay.finsys.core.domain.enumeration.ContractType;
 import com.picpay.finsys.core.domain.enumeration.InstallmentStatus;
 import com.picpay.finsys.core.exception.ContractLowPeriodException;
 import com.picpay.finsys.core.exception.ContractLowRequestedAmountException;
 import com.picpay.finsys.core.exception.CustomerNotFoundException;
 import com.picpay.finsys.core.exception.InactiveCustomerException;
 import com.picpay.finsys.core.gateway.ContractGateway;
+import com.picpay.finsys.core.gateway.CustomerGateway;
 import com.picpay.finsys.core.usecase.InsertContractUseCase;
 import com.picpay.finsys.core.usecase.impl.validation.ContractPeriodValidation;
 import com.picpay.finsys.core.usecase.impl.validation.ContractRequestedAmountValidation;
@@ -19,7 +21,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.text.DecimalFormat;
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,6 +31,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class InsertContractUseCaseImpl implements InsertContractUseCase {
     private final ContractGateway contractGateway;
+    private final CustomerGateway customerGateway;
 
     private final CustomerExistenceValidation customerExistenceValidation;
     private final CustomerStatusValidation customerStatusValidation;
@@ -35,16 +40,18 @@ public class InsertContractUseCaseImpl implements InsertContractUseCase {
 
     @Value("${finsys.interest-rate.monthly}")
     private Double monthlyInterestRate;
-    private DecimalFormat df = new DecimalFormat("#.00");
+    private final DecimalFormat df = new DecimalFormat("#.00");
 
     @Override
-    public ContractDomain execute(ContractDomain contract) throws CustomerNotFoundException, ContractLowRequestedAmountException, InactiveCustomerException, ContractLowPeriodException {
-        customerExistenceValidation.validate(contract.getCustomerId());
-        customerStatusValidation.validate(contract.getCustomerId());
+    public ContractDomain execute(ContractDomain contract, String username) throws CustomerNotFoundException, ContractLowRequestedAmountException, InactiveCustomerException, ContractLowPeriodException {
+        String customerId = customerGateway.findByEmail(username).getId();
 
-        String customerId = contract.getCustomerId();
+        customerExistenceValidation.validate(customerId);
+        customerStatusValidation.validate(customerId);
+
         Double requestedAmount = contract.getRequestedAmount();
         Integer period = contract.getPeriod();
+        Integer monthsUntilCharge = contract.getMonthsUntilCharge();
 
         contractRequestedAmountValidation.validate(requestedAmount);
         contractPeriodValidation.validate(period);
@@ -53,13 +60,15 @@ public class InsertContractUseCaseImpl implements InsertContractUseCase {
         String formattedTotalAmount = this.df.format(installmentAmount * period).replace(',', '.');
         Double totalAmount = Double.parseDouble(formattedTotalAmount);
         LocalDateTime startDate = LocalDateTime.now();
-        LocalDateTime endDate = startDate.plusMonths(period);
+        LocalDateTime endDate = startDate.plusMonths(period + monthsUntilCharge);
         ContractStatus status = ContractStatus.ACTIVE;
+        ContractType type = ContractType.STANDARD;
 
-        List<InstallmentDomain> installments = createInstallments(period, installmentAmount);
+        List<InstallmentDomain> installments = getInstallmentDomains(period, installmentAmount, monthsUntilCharge);
 
         ContractDomain domain = createObject(
                 customerId,
+                type,
                 requestedAmount,
                 totalAmount,
                 this.monthlyInterestRate,
@@ -68,7 +77,9 @@ public class InsertContractUseCaseImpl implements InsertContractUseCase {
                 startDate,
                 endDate,
                 status,
-                installments
+                installments,
+                installments.get(0).getDaysOverdue(),
+                monthsUntilCharge
         );
 
         return contractGateway.insert(domain);
@@ -82,18 +93,18 @@ public class InsertContractUseCaseImpl implements InsertContractUseCase {
         return Double.parseDouble(formattedInstallmentAmount);
     }
 
-    private List<InstallmentDomain> createInstallments(
-            Integer period,
-            Double installmentAmount
-    ) {
+    private List<InstallmentDomain> getInstallmentDomains(Integer period, Double installmentAmount, Integer monthsUntilCharge) {
         List<InstallmentDomain> installments = new ArrayList<>();
 
-        for (int i = 1; i <= period; i++) {
+        for (int i = 0; i <= period; i++) {
+            LocalDateTime chargeDate = LocalDateTime.now().plusMonths(i + monthsUntilCharge);
             InstallmentDomain installment = InstallmentDomain.builder()
-                    .id(String.valueOf(i))
+                    .id(String.valueOf(i + 1))
                     .amount(installmentAmount)
                     .status(InstallmentStatus.OPEN)
-                    .dueDate(LocalDateTime.now().plusMonths(i))
+                    .dueDate(LocalDateTime.now().plusMonths(i + 1 + monthsUntilCharge))
+                    .chargeDate(chargeDate)
+                    .daysOverdue((ChronoUnit.DAYS.between(chargeDate.plusMonths(1), LocalDateTime.now())))
                     .build();
 
             installments.add(installment);
@@ -104,6 +115,7 @@ public class InsertContractUseCaseImpl implements InsertContractUseCase {
 
     private ContractDomain createObject(
             String customerId,
+            ContractType type,
             Double requestedAmount,
             Double totalAmount,
             Double monthlyInterestRate,
@@ -112,10 +124,13 @@ public class InsertContractUseCaseImpl implements InsertContractUseCase {
             LocalDateTime startDate,
             LocalDateTime endDate,
             ContractStatus status,
-            List<InstallmentDomain> installments
+            List<InstallmentDomain> installments,
+            Long daysOverdue,
+            Integer monthsUntilCharge
     ) {
         return ContractDomain.builder()
                 .customerId(customerId)
+                .type(type)
                 .requestedAmount(requestedAmount)
                 .totalAmount(totalAmount)
                 .monthlyInterestRate(monthlyInterestRate)
@@ -125,6 +140,8 @@ public class InsertContractUseCaseImpl implements InsertContractUseCase {
                 .endDate(endDate)
                 .status(status)
                 .installments(installments)
+                .daysOverdue(daysOverdue)
+                .monthsUntilCharge(monthsUntilCharge)
                 .build();
     }
 }

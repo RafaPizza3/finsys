@@ -1,6 +1,7 @@
 package com.picpay.finsys.dataprovider.entity;
 
 import com.picpay.finsys.core.domain.enumeration.ContractStatus;
+import com.picpay.finsys.core.domain.enumeration.ContractType;
 import lombok.Builder;
 import lombok.Getter;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -19,7 +20,11 @@ public class ContractEntity {
 
     private String customerId;
 
+    private ContractType type;
+
     private Double requestedAmount;
+
+    private Double originalDueAmount;
 
     private Double totalAmount;
 
@@ -38,4 +43,8 @@ public class ContractEntity {
     private ContractStatus status;
 
     private List<InstallmentEntity> installments;
+
+    private Long daysOverdue;
+
+    private Integer monthsUntilCharge;
 }

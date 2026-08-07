@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -16,5 +17,8 @@ public class InstallmentDomain {
     private Double paidAmount;
     private InstallmentStatus status;
     private LocalDateTime dueDate;
+    private LocalDateTime chargeDate;
     private LocalDateTime paidDate;
+    private Long daysOverdue;
+    List<HistoryDomain> history;
 }

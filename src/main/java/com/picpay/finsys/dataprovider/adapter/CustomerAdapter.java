@@ -49,6 +49,12 @@ public class CustomerAdapter implements CustomerGateway {
     }
 
     @Override
+    public CustomerDomain findByEmail(String email) {
+        var entity = customerRepository.findByEmail(email).orElse(null);
+        return customerMapper.toDomain(entity);
+    }
+
+    @Override
     public CustomerDomain insert(CustomerDomain customer) {
         var entity = customerMapper.toEntity(customer);
         var saved = customerRepository.insert(entity);
@@ -66,4 +72,10 @@ public class CustomerAdapter implements CustomerGateway {
     public void delete(String id) {
         customerRepository.deleteById(id);
     }
+
+    @Override
+    public Boolean customerExistsByEmail(String email) {
+        return customerRepository.existsCustomerEntityByEmail(email);
+    }
+
 }

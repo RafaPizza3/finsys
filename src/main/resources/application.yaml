@@ -1,10 +1,16 @@
 server:
   port: ${PORT}
 finsys:
+  security:
+    jwt:
+      secret-key: ${JWT_SECRET_KEY}
+      expiration-time: ${JWT_EXPIRATION_TIME}
   interest-rate:
     monthly: ${MONTHLY_INTEREST_RATE}
   viacep:
     url: ${VIA_CEP_URL}
+  bcrypt:
+    cost: ${BCRYPT_COST}
 
 spring:
   application:
