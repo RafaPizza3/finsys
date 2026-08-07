@@ -5,6 +5,7 @@ import com.picpay.finsys.core.exception.InactiveCustomerException;
 import com.picpay.finsys.core.exception.CustomerHasContractException;
 import com.picpay.finsys.core.exception.CustomerNotFoundException;
 import com.picpay.finsys.core.exception.CustomerTooYoungException;
+import com.picpay.finsys.core.exception.InvalidPasswordException;
 import com.picpay.finsys.core.exception.InvalidZipCodeException;
 import com.picpay.finsys.entrypoint.dto.request.CustomerRequest;
 import com.picpay.finsys.entrypoint.dto.request.CustomerUpdateRequest;
@@ -61,23 +62,6 @@ public interface CustomerControllerAPI {
     }
     )
     CustomerResponse findById(String id) throws CustomerNotFoundException;
-
-    @Operation(
-            summary = "Inserts a customer",
-            description = "Returns the created customer"
-    )
-    @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "201",
-                    description = "Customer created"
-            ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "Some info in request went wrong"
-            )
-    }
-    )
-    CustomerResponse insert(CustomerRequest request) throws InvalidZipCodeException, CustomerTooYoungException;
 
     @Operation(
             summary = "Updates a customer",

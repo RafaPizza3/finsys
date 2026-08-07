@@ -1,10 +1,12 @@
 package com.picpay.finsys.entrypoint.dto.response;
 
+import com.picpay.finsys.core.domain.HistoryDomain;
 import com.picpay.finsys.core.domain.enumeration.InstallmentStatus;
 import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Builder
@@ -14,5 +16,8 @@ public class InstallmentResponse {
     private Double paidAmount;
     private InstallmentStatus status;
     private LocalDateTime dueDate;
+    private LocalDateTime chargeDate;
     private LocalDateTime paidDate;
+    private Integer daysOverdue;
+    private List<HistoryDomain> history;
 }

@@ -2,10 +2,10 @@ package com.picpay.finsys.entrypoint.worker.receiver;
 
 import com.picpay.finsys.core.usecase.InstallmentPaymentUseCase;
 import com.picpay.finsys.entrypoint.dto.request.InstallmentPaymentRequest;
-import com.picpay.finsys.entrypoint.mapper.InstallmentMapperDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.joda.time.LocalDateTime;
 import org.springframework.context.annotation.Bean;
 import org.springframework.messaging.Message;
 import org.springframework.stereotype.Component;
@@ -26,6 +26,16 @@ public class InstallmentPaymentReceiver {
     @SneakyThrows
     public void receive(Message<InstallmentPaymentRequest> message) {
         var payment = message.getPayload();
-        installmentPaymentUseCase.execute(payment.getContractId(), payment.getInstallmentId(), payment.getPaymentAmount());
+        LocalDateTime jodaTime = new LocalDateTime(message.getHeaders().getTimestamp());
+        java.time.LocalDateTime paymentDate = java.time.LocalDateTime.of(
+                jodaTime.getYear(),
+                jodaTime.getMonthOfYear(),
+                jodaTime.getDayOfMonth(),
+                jodaTime.getHourOfDay(),
+                jodaTime.getMinuteOfHour(),
+                jodaTime.getSecondOfMinute(),
+                jodaTime.getMillisOfSecond()
+        );
+        installmentPaymentUseCase.execute(payment.getContractId(), payment.getInstallmentId(), payment.getPaymentAmount(), paymentDate);
     }
 }

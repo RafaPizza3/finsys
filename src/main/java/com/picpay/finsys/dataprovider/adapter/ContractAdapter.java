@@ -54,6 +54,16 @@ public class ContractAdapter implements ContractGateway {
     }
 
     @Override
+    public List<ContractDomain> findAllIds() {
+        List<ContractEntity> entities = contractRepository.findAllIds();
+
+        return entities
+                .stream()
+                .map(contractMapper::toDomain)
+                .toList();
+    }
+
+    @Override
     public ContractDomain findById(String id) {
         var entity = contractRepository.findById(id).orElse(null);
         return contractMapper.toDomain(entity);

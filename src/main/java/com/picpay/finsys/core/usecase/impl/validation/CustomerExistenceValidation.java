@@ -15,7 +15,7 @@ public class CustomerExistenceValidation {
         CustomerDomain customer = customerGateway.findById(customerId);
 
         if(customer == null) {
-            throw new CustomerNotFoundException(customerId);
+            throw new CustomerNotFoundException();
         }
     }
 }

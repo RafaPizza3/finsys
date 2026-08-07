@@ -20,16 +20,18 @@ import com.picpay.finsys.core.usecase.FindContractByStatusUseCase;
 import com.picpay.finsys.core.usecase.FindAllContractUseCase;
 import com.picpay.finsys.core.usecase.FindContractByIdUseCase;
 import com.picpay.finsys.core.usecase.InsertContractUseCase;
-import com.picpay.finsys.core.usecase.UpdateContractUseCase;
 import com.picpay.finsys.core.usecase.DeleteContractUseCase;
+import com.picpay.finsys.core.usecase.RefinanceContractUseCase;
+import com.picpay.finsys.dataprovider.config.AuthConfig;
+import com.picpay.finsys.dataprovider.config.JwtConfig;
 import com.picpay.finsys.entrypoint.controller.api.ContractControllerAPI;
 import com.picpay.finsys.entrypoint.dto.request.ContractRequest;
 import com.picpay.finsys.entrypoint.dto.request.ContractUpdateRequest;
+import com.picpay.finsys.entrypoint.dto.request.RefinanceRequest;
 import com.picpay.finsys.entrypoint.dto.response.ContractResponse;
 import com.picpay.finsys.entrypoint.mapper.ContractMapperDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.BadRequestException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -44,8 +46,11 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.List;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/v1/contracts")
@@ -58,9 +63,14 @@ public class ContractController implements ContractControllerAPI {
     private final FindAllContractUseCase findAllContractUseCase;
     private final FindContractByIdUseCase findContractByIdUseCase;
     private final InsertContractUseCase insertContractUseCase;
-    private final UpdateContractUseCase updateContractUseCase;
+    private final RefinanceContractUseCase refinanceContractUseCase;
     private final CancelContractUseCase cancelContractUseCase;
     private final DeleteContractUseCase deleteContractUseCase;
+
+    private final AuthConfig authConfig;
+    private final JwtConfig jwtConfig;
+
+    private String authHeader = "Authorization";
 
     @Override
     @GetMapping("/{customerId}/{status}")
@@ -80,7 +90,7 @@ public class ContractController implements ContractControllerAPI {
     }
 
     @Override
-    @GetMapping("/{status}")
+    @GetMapping("/status/{status}")
     @ResponseStatus(HttpStatus.OK)
     public Page<ContractResponse> findAllByStatus(
             @PathVariable ContractStatus status, @PageableDefault(size = 5) Pageable page
@@ -119,19 +129,21 @@ public class ContractController implements ContractControllerAPI {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ContractResponse insert(@RequestBody @Valid ContractRequest contract) throws CustomerNotFoundException, ContractLowRequestedAmountException, InactiveCustomerException, ContractLowPeriodException {
+        String token = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest().getHeader(authHeader);
+        String extractedToken = extractToken(token);
+        String username = jwtConfig.extractUsername(extractedToken);
         ContractDomain requestDomain = contractMapper.toDomain(contract);
-        ContractDomain responseDomain = insertContractUseCase.execute(requestDomain);
+        ContractDomain responseDomain = insertContractUseCase.execute(requestDomain, username);
         return contractMapper.toResponse(responseDomain);
     }
 
     @Override
-    @PutMapping("/{id}")
+    @PostMapping("/refinance")
     @ResponseStatus(HttpStatus.CREATED)
-    public ContractResponse update(@PathVariable String id, @RequestBody ContractUpdateRequest request) throws NullUpdateRequestException, ContractNotFoundException, NewLowerContractPeriodException, CustomerNotFoundException, NewLowerContractRequestedAmountException {
-        ContractDomain requestDomain = contractMapper.toDomain(request);
-        requestDomain.setId(id);
-        ContractDomain responseDomain = updateContractUseCase.execute(id, requestDomain);
-        return contractMapper.toResponse(responseDomain);
+    public ContractResponse refinance(@RequestBody @Valid RefinanceRequest request) throws CanceledContractException, FinishedContractException, ContractNotFoundException {
+        System.out.println(request.getContractId());
+        ContractDomain domain = refinanceContractUseCase.execute(request.getContractId(), request.getPeriod(), request.getMonthsUntilCharge());
+        return contractMapper.toResponse(domain);
     }
 
     @Override
@@ -146,5 +158,9 @@ public class ContractController implements ContractControllerAPI {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable String id) throws ActiveContractException, ContractNotFoundException {
         deleteContractUseCase.execute(id);
+    }
+
+    private String extractToken(String token) {
+        return token.substring(7);
     }
 }

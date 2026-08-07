@@ -11,4 +11,6 @@ public class AddressEntity {
     private String neighborhood;
     private String city;
     private String federativeUnity;
+    private String number;
+    private String detail;
 }

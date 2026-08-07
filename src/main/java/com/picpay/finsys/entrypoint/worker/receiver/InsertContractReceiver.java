@@ -29,6 +29,6 @@ public class InsertContractReceiver {
     @SneakyThrows
     public void receive(Message<ContractRequest> message) {
         var contract = contractMapper.toDomain(message.getPayload());
-        insertContractUseCase.execute(contract);
+        insertContractUseCase.execute(contract, null);
     }
 }

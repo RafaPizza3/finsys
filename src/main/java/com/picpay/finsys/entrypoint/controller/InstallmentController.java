@@ -67,7 +67,7 @@ public class InstallmentController implements InstallmentControllerAPI {
     public InstallmentResponse payInstallment(@RequestBody InstallmentPaymentRequest request) throws InstallmentNotFoundException, ExceededInstallmentAmountInPaymentException, ContractNotFoundException, InstallmentPaymentPriorityException, PaidInstallmentException, CanceledInstallmentException {
         InstallmentDomain installment = installmentPaymentUseCase.execute(request.getContractId(),
                 request.getInstallmentId(),
-                request.getPaymentAmount());
+                request.getPaymentAmount(), null);
 
         return installmentMapper.toResponse(installment);
     }

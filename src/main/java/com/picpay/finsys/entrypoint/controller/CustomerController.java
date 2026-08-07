@@ -6,12 +6,13 @@ import com.picpay.finsys.core.exception.InactiveCustomerException;
 import com.picpay.finsys.core.exception.CustomerHasContractException;
 import com.picpay.finsys.core.exception.CustomerNotFoundException;
 import com.picpay.finsys.core.exception.CustomerTooYoungException;
+import com.picpay.finsys.core.exception.InvalidPasswordException;
 import com.picpay.finsys.core.exception.InvalidZipCodeException;
 import com.picpay.finsys.core.usecase.FindCustomerByStatusUseCase;
 import com.picpay.finsys.core.usecase.FindAllCustomerUseCase;
 import com.picpay.finsys.core.usecase.FindCustomerByIdUseCase;
 import com.picpay.finsys.core.usecase.InactivateCustomerUseCase;
-import com.picpay.finsys.core.usecase.InsertCustomerUseCase;
+import com.picpay.finsys.core.usecase.CreateCustomerUseCase;
 import com.picpay.finsys.core.usecase.UpdateCustomerUseCase;
 import com.picpay.finsys.core.usecase.DeleteCustomerUseCase;
 import com.picpay.finsys.entrypoint.controller.api.CustomerControllerAPI;
@@ -48,7 +49,7 @@ public class CustomerController implements CustomerControllerAPI {
     private final FindCustomerByStatusUseCase findCustomerByStatusUseCase;
     private final FindAllCustomerUseCase findAllCustomerUseCase;
     private final FindCustomerByIdUseCase findCustomerByIdUseCase;
-    private final InsertCustomerUseCase insertCustomerUseCase;
+    private final CreateCustomerUseCase insertCustomerUseCase;
     private final UpdateCustomerUseCase updateCustomerUseCase;
     private final InactivateCustomerUseCase inactivateCustomerUseCase;
     private final DeleteCustomerUseCase deleteCustomerUseCase;
@@ -88,15 +89,6 @@ public class CustomerController implements CustomerControllerAPI {
     public CustomerResponse findById(@PathVariable String id) throws CustomerNotFoundException {
         CustomerDomain domain = findCustomerByIdUseCase.execute(id);
         return customerMapper.toResponse(domain);
-    }
-
-    @Override
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public CustomerResponse insert(@RequestBody @Valid CustomerRequest customer) throws InvalidZipCodeException, CustomerTooYoungException {
-        CustomerDomain requestDomain = customerMapper.toDomain(customer);
-        CustomerDomain responseDomain = insertCustomerUseCase.execute(requestDomain, customer.getZipCode());
-        return customerMapper.toResponse(responseDomain);
     }
 
     @Override

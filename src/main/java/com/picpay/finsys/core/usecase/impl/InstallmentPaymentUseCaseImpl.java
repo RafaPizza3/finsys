@@ -1,8 +1,10 @@
 package com.picpay.finsys.core.usecase.impl;
 
 import com.picpay.finsys.core.domain.ContractDomain;
+import com.picpay.finsys.core.domain.HistoryDomain;
 import com.picpay.finsys.core.domain.InstallmentDomain;
 import com.picpay.finsys.core.domain.enumeration.ContractStatus;
+import com.picpay.finsys.core.domain.enumeration.HistoryType;
 import com.picpay.finsys.core.domain.enumeration.InstallmentStatus;
 import com.picpay.finsys.core.exception.CanceledInstallmentException;
 import com.picpay.finsys.core.exception.ContractNotFoundException;
@@ -20,7 +22,10 @@ import com.picpay.finsys.core.usecase.impl.validation.InstallmentStatusValidatio
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.text.DecimalFormat;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -35,7 +40,9 @@ public class InstallmentPaymentUseCaseImpl implements InstallmentPaymentUseCase 
     private final InstallmentStatusValidation installmentStatusValidation;
 
     @Override
-    public InstallmentDomain execute(String contractId, String installmentId, Double paymentAmount) throws ContractNotFoundException, InstallmentNotFoundException, ExceededInstallmentAmountInPaymentException, InstallmentPaymentPriorityException, PaidInstallmentException, CanceledInstallmentException {
+    public InstallmentDomain execute(String contractId, String installmentId, Double paymentAmount, LocalDateTime messageDate) throws ContractNotFoundException, InstallmentNotFoundException, ExceededInstallmentAmountInPaymentException, InstallmentPaymentPriorityException, PaidInstallmentException, CanceledInstallmentException {
+        HistoryType historyType = HistoryType.FULL;
+
         contractExistenceValidation.validate(contractId);
         installmentExistenceValidation.validate(contractId, installmentId);
 
@@ -60,15 +67,41 @@ public class InstallmentPaymentUseCaseImpl implements InstallmentPaymentUseCase 
 
         installment.setStatus(InstallmentStatus.PAID);
         if (installment.getPaidAmount() < installment.getAmount()) {
+            historyType = HistoryType.PARTIAL;
             installment.setStatus(InstallmentStatus.PARTIALLY_PAID);
         }
 
-        installment.setPaidDate(LocalDateTime.now());
+        LocalDateTime paymentDate = LocalDateTime.now();
+        if(messageDate != null) {
+            paymentDate = messageDate;
+        }
+
+        if (installment.getStatus() == InstallmentStatus.PAID) {
+            installment.setPaidDate(LocalDateTime.now());
+            if(messageDate != null) {
+                installment.setPaidDate(messageDate);
+            }
+        }
+
+        List<HistoryDomain> installmentHistory = installment.getHistory();
+        if(installmentHistory == null) {
+            installmentHistory = new ArrayList<>();
+        }
+
+        if (historyType == HistoryType.FULL && !installmentHistory.isEmpty()) {
+            historyType = HistoryType.FINAL;
+        }
+
+        HistoryDomain newHistory = buildHistory(historyType, paymentDate, paymentAmount);
+
+        installmentHistory.add(newHistory);
 
         if(contract.getInstallments().getLast().getId() == installment.getId()
                 && installment.getStatus() == InstallmentStatus.PAID) {
             contract.setStatus(ContractStatus.FINISHED);
         }
+
+        installment.setHistory(installmentHistory);
 
         ContractDomain newContract = buildUpdatedContract(contract, installment);
 
@@ -87,5 +120,18 @@ public class InstallmentPaymentUseCaseImpl implements InstallmentPaymentUseCase 
         contract.getInstallments().add(installmentIndex, installment);
 
         return contract;
+    }
+
+    private HistoryDomain buildHistory(
+            HistoryType type,
+            LocalDateTime date,
+            Double amount
+    ) {
+        return HistoryDomain
+                .builder()
+                .type(type)
+                .date(date)
+                .amount(amount)
+                .build();
     }
 }
